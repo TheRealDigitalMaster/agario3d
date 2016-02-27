@@ -39,8 +39,14 @@ Game.start()
 io.on('connection', (socket) => {
     const name = socket.handshake.query.name
     console.log(`User ${name} joined the game`)
+    console.log(`id: ${socket.id}`)
 
-    socket.emit('welcome', Game.addPlayer(name))
+    socket.emit('welcome', Game.addPlayer({
+        name: name,
+        id: socket.id
+    }))
+
+    io.emit('update', Game.state())
 
     socket.on('gotit', () => {
 

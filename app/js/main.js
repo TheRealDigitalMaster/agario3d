@@ -12,6 +12,9 @@ const OrbitControls = orbitFn(THREE),
     FlyControls = flyFn(THREE)
 import io from 'socket.io-client'
 
+//TODO switch to FirstPersonControls
+
+
 function debug(msg) {
     console.log(msg)
 }
@@ -27,9 +30,8 @@ startBtn.addEventListener('click', () => {
 })
 
 function addBlob(options){
-    const geometry = new THREE.SphereGeometry(options.size, 20, 20),
-        material = new THREE.MeshPhongMaterial({color: options.c, shading: THREE.SmoothShading}),
-        mesh = new THREE.Mesh(geometry, material)
+    const material = new THREE.MeshPhongMaterial({color: options.c, shading: THREE.SmoothShading, shininess: options.shininess}),
+        mesh = new THREE.Mesh(options.geom, material)
     mesh.position.x = options.x
     mesh.position.y = options.y
     mesh.position.z = options.z
@@ -51,7 +53,9 @@ function init(state) {
     container.appendChild(renderer.domElement)
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.z = 500
+    camera.position.x = state.me.x
+    camera.position.y = state.me.y
+    camera.position.z = state.me.z
 
     controls = THREE.FlyControls(camera, renderer.domElement)
     controls.enableDamping = true
@@ -59,9 +63,25 @@ function init(state) {
     controls.enableZoom = true
 
 
-    const {food, viruses} = state
-    food.items.forEach(f => scene.add(addBlob(Object.assign(f, {size: food.size}))))
-    viruses.items.forEach(f => scene.add(addBlob(Object.assign(f, {c: viruses.colour, size: viruses.size}))))
+    const {food, viruses, players} = state
+    const foodGeom = new THREE.SphereGeometry(food.size, 20, 20),
+        virusGeom = new THREE.SphereGeometry(viruses.size, 20, 20)
+
+    food.items.forEach(f => scene.add(addBlob(Object.assign(f, {
+        shininess: 10,
+        geom: foodGeom
+    }))))
+
+    viruses.items.forEach(f => scene.add(addBlob(Object.assign(f, {
+        c: viruses.colour,
+        shininess: 150,
+        geom: virusGeom
+    }))))
+
+    players.forEach(f => scene.add(addBlob(Object.assign(f, {
+        shininess: 20,
+        geom: new THREE.SphereGeometry(5, 20, 20)
+    }))))
 
     let light = new THREE.DirectionalLight(0xffffff)
     light.position.set(1, 1, 1)
@@ -109,9 +129,12 @@ function setupSocket(socket) {
 
     // Handle connection.
     socket.on('welcome', (state) => {
-        debug(`welcome ${state.player.name} to the game`)
         init(state)
         animate()
+    })
+
+    socket.on('update', state => {
+        console.log('received an update')
     })
 }
 
