@@ -26,8 +26,20 @@ startBtn.addEventListener('click', () => {
     startGame(nameField.value)
 })
 
+function addBlob(options){
+    const geometry = new THREE.SphereGeometry(options.size, 20, 20),
+        material = new THREE.MeshPhongMaterial({color: options.c, shading: THREE.SmoothShading}),
+        mesh = new THREE.Mesh(geometry, material)
+    mesh.position.x = options.x
+    mesh.position.y = options.y
+    mesh.position.z = options.z
+    mesh.updateMatrix()
+    mesh.matrixAutoUpdate = false
+    return mesh
+}
 
-function init(food) {
+
+function init(state) {
     scene = new THREE.Scene()
     scene.fog = new THREE.FogExp2(0xdddddd, 0.003)
     renderer = new THREE.WebGLRenderer()
@@ -46,18 +58,10 @@ function init(food) {
     controls.dampingFactor = 0.25
     controls.enableZoom = true
 
-    const geometry = new THREE.SphereGeometry(10, 20, 20)
 
-    food.forEach(f => {
-        const material = new THREE.MeshPhongMaterial({color: f.c, shading: THREE.FlatShading})
-        const mesh = new THREE.Mesh(geometry, material)
-        mesh.position.x = f.x
-        mesh.position.y = f.y
-        mesh.position.z = f.z
-        mesh.updateMatrix()
-        mesh.matrixAutoUpdate = false
-        scene.add(mesh)
-    })
+    const {food, viruses} = state
+    food.items.forEach(f => scene.add(addBlob(Object.assign(f, {size: food.size}))))
+    viruses.items.forEach(f => scene.add(addBlob(Object.assign(f, {c: viruses.colour, size: viruses.size}))))
 
     let light = new THREE.DirectionalLight(0xffffff)
     light.position.set(1, 1, 1)
@@ -106,7 +110,7 @@ function setupSocket(socket) {
     // Handle connection.
     socket.on('welcome', (state) => {
         debug(`welcome ${state.player.name} to the game`)
-        init(state.food)
+        init(state)
         animate()
     })
 }
