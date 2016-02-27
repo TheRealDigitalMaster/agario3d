@@ -18,8 +18,16 @@ function debug(msg) {
 
 let camera, controls, scene, renderer
 
+const startBtn = document.getElementById('start'),
+    nameField = document.getElementById('name')
+nameField.focus()
 
-function init() {
+startBtn.addEventListener('click', () => {
+    startGame(nameField.value)
+})
+
+
+function init(food) {
     scene = new THREE.Scene()
     scene.fog = new THREE.FogExp2(0xdddddd, 0.003)
     renderer = new THREE.WebGLRenderer()
@@ -39,17 +47,17 @@ function init() {
     controls.enableZoom = true
 
     const geometry = new THREE.SphereGeometry(10, 20, 20)
-    const material = new THREE.MeshPhongMaterial({color: 0xfa9a00, shading: THREE.FlatShading})
 
-    for (let i = 0; i < 500; i++) {
+    food.forEach(f => {
+        const material = new THREE.MeshPhongMaterial({color: f.c, shading: THREE.FlatShading})
         const mesh = new THREE.Mesh(geometry, material)
-        mesh.position.x = ( Math.random() - 0.5 ) * 1000
-        mesh.position.y = ( Math.random() - 0.5 ) * 1000
-        mesh.position.z = ( Math.random() - 0.5 ) * 1000
+        mesh.position.x = f.x
+        mesh.position.y = f.y
+        mesh.position.z = f.z
         mesh.updateMatrix()
         mesh.matrixAutoUpdate = false
         scene.add(mesh)
-    }
+    })
 
     let light = new THREE.DirectionalLight(0xffffff)
     light.position.set(1, 1, 1)
@@ -72,7 +80,6 @@ function onWindowResize() {
 }
 
 function render() {
-    //camera.position.z -= 1
     renderer.render(scene, camera)
 }
 
@@ -82,12 +89,7 @@ function animate() {
     render()
 }
 
-init()
-animate()
-
-const socket = io()
-
-function setupSocket() {
+function setupSocket(socket) {
     socket.on('pong', () => {
         debug('pong')
     })
@@ -95,18 +97,20 @@ function setupSocket() {
     // Handle error.
     socket.on('connect_failed', () => {
         socket.close()
-        disconnected = true
     })
 
     socket.on('disconnect', () => {
         socket.close()
-        disconnected = true
     })
 
     // Handle connection.
-    socket.on('welcome', () => {
-        debug('welcome')
+    socket.on('welcome', (state) => {
+        debug(`welcome ${state.player.name} to the game`)
+        init(state.food)
+        animate()
     })
 }
-setupSocket(socket)
 
+function startGame(name) {
+    setupSocket(io({query: `name=${name}`}))
+}

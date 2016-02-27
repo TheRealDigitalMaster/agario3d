@@ -22,3 +22,25 @@ a {
   color: red;
 }
 
+.start {
+  padding:40px;
+  background: #ffffff;
+  border-radius: 5px;
+  border:1px solid #cccccc;
+  width:200px;
+  margin:auto;
+  -webkit-box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
+  -moz-box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
+  box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
+
+  button {
+    padding:20px;
+    border-radius: 5px;
+  }
+
+  input {
+    margin:20px 0 20px 0;
+    padding:10px;
+  }
+}
+
