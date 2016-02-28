@@ -19,7 +19,7 @@ function debug(msg) {
     console.log(msg)
 }
 
-let camera, controls, scene, renderer
+let camera, controls, scene, renderer, state, socket, me
 
 const startBtn = document.getElementById('start'),
     nameField = document.getElementById('name')
@@ -41,7 +41,7 @@ function addBlob(options){
 }
 
 
-function init(state) {
+function init(s) {
     scene = new THREE.Scene()
     scene.fog = new THREE.FogExp2(0xdddddd, 0.003)
     renderer = new THREE.WebGLRenderer()
@@ -58,12 +58,12 @@ function init(state) {
     camera.position.z = state.me.z
 
     controls = THREE.FlyControls(camera, renderer.domElement)
-    controls.enableDamping = true
-    controls.dampingFactor = 0.25
-    controls.enableZoom = true
+    //controls.enableDamping = true
+    //controls.dampingFactor = 0.25
+    //controls.enableZoom = true
 
 
-    const {food, viruses, players} = state
+    const {food, viruses, players} = s
     const foodGeom = new THREE.SphereGeometry(food.size, 20, 20),
         virusGeom = new THREE.SphereGeometry(viruses.size, 20, 20)
 
@@ -95,6 +95,7 @@ function init(state) {
     scene.add(light)
 
     window.addEventListener('resize', onWindowResize, false)
+    return s
 }
 
 function onWindowResize() {
@@ -111,33 +112,35 @@ function animate() {
     requestAnimationFrame(animate)
     controls.update() // required if controls.enableDamping = true, or if controls.autoRotate = true
     render()
+    socket.emit('position', me)
 }
 
-function setupSocket(socket) {
-    socket.on('pong', () => {
+function setupSocket(sock) {
+    sock.on('pong', () => {
         debug('pong')
     })
 
     // Handle error.
-    socket.on('connect_failed', () => {
-        socket.close()
+    sock.on('connect_failed', () => {
+        sock.close()
     })
 
-    socket.on('disconnect', () => {
-        socket.close()
+    sock.on('disconnect', () => {
+        sock.close()
     })
 
     // Handle connection.
-    socket.on('welcome', (state) => {
-        init(state)
+    sock.on('welcome', (s) => {
+        state = init(s)
         animate()
     })
 
-    socket.on('update', state => {
+    sock.on('update', s => {
         console.log('received an update')
+        state = s
     })
 }
 
 function startGame(name) {
-    setupSocket(io({query: `name=${name}`}))
+    socket = setupSocket(io({query: `name=${name}`}))
 }
