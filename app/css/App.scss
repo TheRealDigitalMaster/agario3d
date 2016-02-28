@@ -22,7 +22,11 @@ a {
   color: red;
 }
 
-.start {
+#start-wrapper {
+
+  &.hide {
+    display: none;
+  }
   padding:40px;
   background: #ffffff;
   border-radius: 5px;

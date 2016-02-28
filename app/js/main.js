@@ -20,13 +20,16 @@ function debug(msg) {
 }
 
 let camera, controls, scene, renderer, state, socket, me
+const allMeshes = {}
 
 const startBtn = document.getElementById('start'),
+    startWrapper = document.getElementById('start-wrapper'),
     nameField = document.getElementById('name')
 nameField.focus()
 
 startBtn.addEventListener('click', () => {
     startGame(nameField.value)
+    startWrapper.classList.add('hide')
 })
 
 function addBlob(options){
@@ -37,6 +40,7 @@ function addBlob(options){
     mesh.position.z = options.z
     mesh.updateMatrix()
     mesh.matrixAutoUpdate = false
+    allMeshes[options.id] = mesh
     return mesh
 }
 
@@ -152,9 +156,14 @@ function setupSocket(sock) {
     })
 
     sock.on('update', s => {
-        console.log('received an update: ' + s.length)
         s.forEach(t => {
-            console.log(t.id)
+            const mesh = allMeshes[t.id]
+            if (mesh) {
+                mesh.position.x = t.x
+                mesh.position.y = t.y
+                mesh.position.z = t.z
+                mesh.updateMatrix()
+            }
         })
     })
     return sock

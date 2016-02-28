@@ -102,7 +102,6 @@ module.exports = {
         return delta()
     },
     updatePosition: (id, pos) => {
-        console.log('received position update for : ' + id)
         if (things[id]) {
             things[id] = Object.assign({}, things[id], pos)
         }
