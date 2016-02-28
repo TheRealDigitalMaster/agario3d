@@ -17,24 +17,17 @@ const config = {
     updatesPerSecond: 60
 }
 
-const food = [],
-    viruses = [],
-    players = []
+const types = {
+    food: 'f',
+    virus: 'v',
+    player: 'p',
+    bot: 'b'
+}
+
+const things = {}
+let snapshot = {}
 
 let nextId = 0
-
-function findById(list, id) {
-    for (let i = 0, l = list.length; i < l; i++) {
-        if (list[i].id === id) {
-            return list[i]
-        }
-    }
-    return null
-}
-
-function findPlayerById(id) {
-    return findById(players, id)
-}
 
 function randomPosition(){
     const [x, y, z] = config.dimensions
@@ -46,13 +39,14 @@ function randomPosition(){
 }
 
 function addPlayer(player) {
-    let p = findPlayerById(player.id)
+    let p = things[player.id]
     if (!p) {
         p = Object.assign({
             c: '#ff0000',
-            s: config.startSize
+            s: config.startSize,
+            t: types.player
         }, player, randomPosition())
-        players.push(p)
+        things[player.id] = p
     }
     return p
 }
@@ -67,41 +61,63 @@ function repeatedly(n, fn){
     }
 }
 
-function state() {
-    return {
-        players,
-        food: {
-            items: food,
-            size: config.food.size
-        },
-        viruses: {
-            items: viruses,
-            size: config.viruses.size,
-            colour: config.viruses.colour
-        }
-    }
+function snapshotState(state) {
+    const c = {}
+    Object.keys(state).forEach(k => c[k] = state[k])
+    return c
 }
 
+function diff(prev, next) {
+    return Object.keys(next)
+        .filter(k => prev[k] === undefined || prev[k] !== next[k])
+        .map(k => next[k])
+}
 
-//TODO - make sure that when we send an update we only send things that have
-//changed position or size
+function delta() {
+    const d = diff(snapshot, things)
+    snapshot = snapshotState(things)
+    return d
+}
 
 module.exports = {
     start: (updateFn) => {
         console.log('start game')
-        repeatedly(config.food.num, () => food.push(Object.assign({
-            c: '#ffffff',
-            id: ++nextId
-        }, randomPosition())))
-        repeatedly(config.viruses.num, () => viruses.push(Object.assign({
-            c: config.viruses.colour,
-            id: ++nextId
-        }, randomPosition())))
+        repeatedly(config.food.num, () => {
+            const f = Object.assign({
+                c: '#ffffff',
+                id: ++nextId,
+                t: types.food
+            }, randomPosition())
+            things[f.id] = f
+        })
+        repeatedly(config.viruses.num, () => {
+            const v = Object.assign({
+                c: config.viruses.colour,
+                id: ++nextId,
+                t: types.virus
+            }, randomPosition())
+            things[v.id] = v
+        })
         setInterval(updateFn, 1000 / config.updatesPerSecond)
+        return delta()
     },
-    state: state,
+    updatePosition: (id, pos) => {
+        console.log('received position update for : ' + id)
+        if (things[id]) {
+            things[id] = Object.assign({}, things[id], pos)
+        }
+    },
+    delta: delta,
     addPlayer: player => {
         const p = addPlayer(player)
-        return Object.assign(state(), {me: p})
+        return {
+            me: p,
+            things: diff({}, things),
+            config: {
+                foodSize: config.food.size,
+                virusSize: config.viruses.size,
+                virusColour: config.viruses.colour
+            }
+        }
     }
 }

@@ -40,7 +40,6 @@ function addBlob(options){
     return mesh
 }
 
-
 function init(s) {
     scene = new THREE.Scene()
     scene.fog = new THREE.FogExp2(0xdddddd, 0.003)
@@ -53,9 +52,10 @@ function init(s) {
     container.appendChild(renderer.domElement)
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.x = state.me.x
-    camera.position.y = state.me.y
-    camera.position.z = state.me.z
+    camera.position.x = s.me.x
+    camera.position.y = s.me.y
+    //camera.position.z = s.me.z + 50
+    camera.position.z = s.me.z
 
     controls = THREE.FlyControls(camera, renderer.domElement)
     //controls.enableDamping = true
@@ -63,24 +63,21 @@ function init(s) {
     //controls.enableZoom = true
 
 
-    const {food, viruses, players} = s
-    const foodGeom = new THREE.SphereGeometry(food.size, 20, 20),
-        virusGeom = new THREE.SphereGeometry(viruses.size, 20, 20)
+    const {things, config} = s,
+        shininess = {
+            f: 20,
+            v: 150,
+            p: 20
+        },
+        geoms = {
+            f: new THREE.SphereGeometry(config.foodSize, 20, 20),
+            v: new THREE.SphereGeometry(config.virusSize, 20, 20),
+            p: new THREE.SphereGeometry(5, 20, 20)
+        }
 
-    food.items.forEach(f => scene.add(addBlob(Object.assign(f, {
-        shininess: 10,
-        geom: foodGeom
-    }))))
-
-    viruses.items.forEach(f => scene.add(addBlob(Object.assign(f, {
-        c: viruses.colour,
-        shininess: 150,
-        geom: virusGeom
-    }))))
-
-    players.forEach(f => scene.add(addBlob(Object.assign(f, {
-        shininess: 20,
-        geom: new THREE.SphereGeometry(5, 20, 20)
+    things.forEach(t => scene.add(addBlob(Object.assign(t, {
+        shininess: shininess[t.t],
+        geom: geoms[t.t]
     }))))
 
     let light = new THREE.DirectionalLight(0xffffff)
@@ -108,11 +105,30 @@ function render() {
     renderer.render(scene, camera)
 }
 
+let prevPosition = {
+    x: 0,
+    y: 0,
+    z: 0
+}
+
 function animate() {
     requestAnimationFrame(animate)
     controls.update() // required if controls.enableDamping = true, or if controls.autoRotate = true
     render()
-    socket.emit('position', me)
+    if (prevPosition.x !== camera.position.x
+        || prevPosition.y !== camera.position.y
+        || prevPosition.z !== camera.position.z) {
+        socket.emit('position', {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z
+        })
+        prevPosition = {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z
+        }
+    }
 }
 
 function setupSocket(sock) {
@@ -136,9 +152,12 @@ function setupSocket(sock) {
     })
 
     sock.on('update', s => {
-        console.log('received an update')
-        state = s
+        console.log('received an update: ' + s.length)
+        s.forEach(t => {
+            console.log(t.id)
+        })
     })
+    return sock
 }
 
 function startGame(name) {

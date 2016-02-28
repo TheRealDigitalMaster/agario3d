@@ -35,12 +35,17 @@ const http = (Http).Server(app)
 const io = (IO)(http)
 
 Game.start(() => {
-    io.emit('update', Game.state())
+    const d = Game.delta()
+    if (d && d.length > 0) {
+        io.emit('update', d)
+    }
 })
 
 io.on('connection', (socket) => {
     const name = socket.handshake.query.name
     console.log(`User ${name} joined the game`)
+
+    socket.on('position', pos => Game.updatePosition(socket.id, pos))
 
     socket.emit('welcome', Game.addPlayer({
         name: name,
