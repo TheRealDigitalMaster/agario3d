@@ -8,8 +8,10 @@ import '../audio/split.mp3'
 import { THREE } from 'three'
 import orbitFn from 'three-orbit-controls'
 import flyFn from 'three-fly-controls'
+import firstFn from 'three-first-person-controls'
 const OrbitControls = orbitFn(THREE),
-    FlyControls = flyFn(THREE)
+    FlyControls = flyFn(THREE),
+    FirstPersonControls = firstFn(THREE)
 import io from 'socket.io-client'
 
 //TODO switch to FirstPersonControls
@@ -62,10 +64,13 @@ function init(s) {
     camera.position.z = s.me.z
 
     controls = THREE.FlyControls(camera, renderer.domElement)
-    //controls.enableDamping = true
-    //controls.dampingFactor = 0.25
-    //controls.enableZoom = true
-
+    //controls = THREE.FirstPersonControls(camera, renderer.domElement)
+    //controls.movementSpeed = 1000
+    //controls.lookSpeed = 0.125
+    //controls.lookVertical = true
+    //controls.constrainVertical = true
+    //controls.verticalMin = 1.1
+    //controls.verticalMax = 2.2
 
     const {things, config} = s,
         shininess = {
@@ -159,9 +164,7 @@ function setupSocket(sock) {
         s.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
-                mesh.position.x = t.x
-                mesh.position.y = t.y
-                mesh.position.z = t.z
+                mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
             }
         })
