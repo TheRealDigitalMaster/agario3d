@@ -35,8 +35,10 @@ const http = (Http).Server(app)
 const io = (IO)(http)
 
 Game.start(() => {
-    const d = Game.delta()
-    if (d && d.length > 0) {
+    const d = Game.delta(),
+        {changed, deleted} = d
+
+    if (d && (changed.length > 0 || deleted .length > 0)) {
         io.emit('update', d)
     }
 })

@@ -4,14 +4,14 @@
 
 const config = {
     dimensions: [1000, 1000, 1000],
-    startSize: 5,
+    startRadius: 20,
     food: {
         num: 500,
-        size: 10
+        radius: 5
     },
     viruses: {
         num: 20,
-        size: 50,
+        radius: 50,
         colour: '#00ff00'
     },
     updatesPerSecond: 60
@@ -29,6 +29,51 @@ let snapshot = {}
 
 let nextId = 0
 
+function massFromRadius(radius) {
+    return (4 / 3) * Math.PI * (Math.pow(radius, 3))
+}
+
+function radiusFromMass(mass) {
+    return Math.cbrt(mass / ((4 / 3) * Math.PI))
+}
+
+function euclideanDistance(t1, t2) {
+    return Math.sqrt(Math.pow((t2.x - t1.x), 2) + Math.pow((t2.y - t1.y), 2) + Math.pow((t2.z - t1.z), 2))
+}
+
+function contains(thing1, thing2) {
+    const d = euclideanDistance(thing1, thing2)
+    return (d + thing2.r) < thing1.r
+}
+
+function getThingsOfType(things, type) {
+    return Object.keys(things)
+        .filter(k => things[k].t === type)
+        .map(k => things[k])
+}
+
+function checkCollisions(things) {
+    const players = getThingsOfType(things, types.player),
+        food = getThingsOfType(things, types.food),
+        both = players.concat(food)
+
+    players.forEach(p1 => {
+        both.forEach(b1 => {
+            if (contains(p1, b1)) {
+                delete things[b1.id]
+                const mass = p1.mass + b1.mass,
+                    rad = radiusFromMass(mass)
+                things[p1.id] = Object.assign(p1, {
+                    m: mass,
+                    r: rad
+                })
+                console.log('nom nom nom')
+            }
+        })
+    })
+    return things
+}
+
 function randomPosition(){
     const [x, y, z] = config.dimensions
     return {
@@ -43,8 +88,9 @@ function addPlayer(player) {
     if (!p) {
         p = Object.assign({
             c: '#ff0000',
-            s: config.startSize,
-            t: types.player
+            r: config.startRadius,
+            t: types.player,
+            m: massFromRadius(config.startRadius)
         }, player, randomPosition())
         things[player.id] = p
     }
@@ -68,13 +114,16 @@ function snapshotState(state) {
 }
 
 function diff(prev, next) {
-    return Object.keys(next)
-        .filter(k => prev[k] === undefined || prev[k] !== next[k])
-        .map(k => next[k])
+    return {
+        deleted: Object.keys(prev).filter(k => next[k] === undefined),
+        changed: Object.keys(next)
+            .filter(k => prev[k] === undefined || prev[k] !== next[k])
+            .map(k => next[k])
+    }
 }
 
 function delta() {
-    const d = diff(snapshot, things)
+    const d = diff(snapshot, checkCollisions(things))
     snapshot = snapshotState(things)
     return d
 }
@@ -84,9 +133,10 @@ module.exports = {
         console.log('start game')
         repeatedly(config.food.num, () => {
             const f = Object.assign({
-                c: '#ffffff',
+                c: randomColour(),
                 id: ++nextId,
-                t: types.food
+                t: types.food,
+                m: massFromRadius(config.food.radius)
             }, randomPosition())
             things[f.id] = f
         })
@@ -94,7 +144,8 @@ module.exports = {
             const v = Object.assign({
                 c: config.viruses.colour,
                 id: ++nextId,
-                t: types.virus
+                t: types.virus,
+                m: massFromRadius(config.viruses.radius)
             }, randomPosition())
             things[v.id] = v
         })
@@ -111,10 +162,10 @@ module.exports = {
         const p = addPlayer(player)
         return {
             me: p,
-            things: diff({}, things),
+            things: diff({}, things).changed,
             config: {
-                foodSize: config.food.size,
-                virusSize: config.viruses.size,
+                foodRadius: config.food.radius,
+                virusRadius: config.viruses.radius,
                 virusColour: config.viruses.colour
             }
         }

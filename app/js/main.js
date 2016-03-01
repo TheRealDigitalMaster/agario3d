@@ -21,7 +21,7 @@ function debug(msg) {
     console.log(msg)
 }
 
-let camera, controls, scene, renderer, state, socket, me
+let camera, controls, scene, renderer, socket
 const allMeshes = {}
 
 const startBtn = document.getElementById('start'),
@@ -79,9 +79,9 @@ function init(s) {
             p: 20
         },
         geoms = {
-            f: new THREE.SphereGeometry(config.foodSize, 20, 20),
-            v: new THREE.SphereGeometry(config.virusSize, 20, 20),
-            p: new THREE.SphereGeometry(5, 20, 20)
+            f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
+            v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
+            p: new THREE.SphereGeometry(20, 20, 20)
         }
 
     things.forEach(t => scene.add(addBlob(Object.assign(t, {
@@ -161,12 +161,16 @@ function setupSocket(sock) {
     })
 
     sock.on('update', s => {
-        s.forEach(t => {
+        const {changed, deleted} = s
+        changed.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
                 mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
             }
+        })
+        deleted.forEach(id => {
+            console.log(`deleted thing ${id}`)
         })
     })
     return sock
