@@ -21,7 +21,7 @@ function debug(msg) {
     console.log(msg)
 }
 
-let camera, controls, scene, renderer, socket
+let camera, controls, scene, renderer, socket, state
 const allMeshes = {}
 
 const startBtn = document.getElementById('start'),
@@ -171,6 +171,7 @@ function setupSocket(sock) {
         })
         deleted.forEach(id => {
             console.log(`deleted thing ${id}`)
+            scene.remove(allMeshes[id])
         })
     })
     return sock

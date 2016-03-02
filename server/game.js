@@ -4,10 +4,10 @@
 
 const config = {
     dimensions: [1000, 1000, 1000],
-    startRadius: 20,
+    startRadius: 30,
     food: {
         num: 500,
-        radius: 5
+        radius: 10
     },
     viruses: {
         num: 20,
@@ -59,14 +59,15 @@ function checkCollisions(things) {
 
     players.forEach(p1 => {
         both.forEach(b1 => {
-            if (contains(p1, b1)) {
+            if (p1 !== b1 && contains(p1, b1)) {
                 delete things[b1.id]
-                const mass = p1.mass + b1.mass,
+                const mass = p1.m + b1.m,
                     rad = radiusFromMass(mass)
                 things[p1.id] = Object.assign(p1, {
                     m: mass,
                     r: rad
                 })
+                console.log(`p1 changed to ${JSON.stringify(things[p1.id])}`)
                 console.log('nom nom nom')
             }
         })
@@ -136,6 +137,7 @@ module.exports = {
                 c: randomColour(),
                 id: ++nextId,
                 t: types.food,
+                r: config.food.radius,
                 m: massFromRadius(config.food.radius)
             }, randomPosition())
             things[f.id] = f
@@ -145,6 +147,7 @@ module.exports = {
                 c: config.viruses.colour,
                 id: ++nextId,
                 t: types.virus,
+                r: config.viruses.radius,
                 m: massFromRadius(config.viruses.radius)
             }, randomPosition())
             things[v.id] = v
