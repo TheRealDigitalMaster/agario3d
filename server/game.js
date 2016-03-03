@@ -1,4 +1,5 @@
 /** game dimensions are 1000, 1000, 1000
+/** game dimensions are 1000, 1000, 1000
  * @type {{start: module.exports.start, addPlayer: module.exports.addPlayer}}
  */
 
@@ -84,6 +85,14 @@ function randomPosition(){
     }
 }
 
+function middle() {
+    return {
+        x: 250,
+        y: 250,
+        z: 250
+    }
+}
+
 function addPlayer(player) {
     let p = things[player.id]
     if (!p) {
@@ -161,6 +170,9 @@ module.exports = {
         }
     },
     delta: delta,
+    removePlayer: id => {
+        delete things[id]
+    },
     addPlayer: player => {
         const p = addPlayer(player)
         return {

@@ -49,6 +49,8 @@ io.on('connection', (socket) => {
 
     socket.on('position', pos => Game.updatePosition(socket.id, pos))
 
+    socket.on('disconnect', _ => Game.removePlayer(socket.id))
+
     socket.emit('welcome', Game.addPlayer({
         name: name,
         id: socket.id

@@ -27,12 +27,21 @@ const allMeshes = {},
         f: 20,
         v: 150,
         p: 20
+    },
+    specular = {
+        f: 0x003300,
+        v: 0xffffff,
+        p: 0xffffff
     }
 let geoms = { }
 
 const startBtn = document.getElementById('start'),
     startWrapper = document.getElementById('start-wrapper'),
-    nameField = document.getElementById('name')
+    nameField = document.getElementById('name'),
+    nameLabel = document.getElementById('my-name'),
+    massLabel = document.getElementById('my-mass'),
+    leaderboardDom = document.getElementById('leaderboard'),
+    leaderboard = {}
 nameField.focus()
 
 startBtn.addEventListener('click', () => {
@@ -41,7 +50,11 @@ startBtn.addEventListener('click', () => {
 })
 
 function addBlob(options){
-    const material = new THREE.MeshPhongMaterial({color: options.c, shading: THREE.SmoothShading, shininess: options.shininess}),
+    const material = new THREE.MeshPhongMaterial({
+            color: options.c,
+            specular: options.specular,
+            shininess: options.shininess
+        }),
         mesh = new THREE.Mesh(options.geom, material)
     mesh.position.x = options.x
     mesh.position.y = options.y
@@ -54,7 +67,7 @@ function addBlob(options){
 
 function init(s) {
     scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0xdddddd, 0.003)
+    scene.fog = new THREE.FogExp2(0xcccccc, 0.003)
     renderer = new THREE.WebGLRenderer()
     renderer.setClearColor(scene.fog.color)
     renderer.setPixelRatio(window.devicePixelRatio)
@@ -78,17 +91,23 @@ function init(s) {
     //controls.verticalMin = 1.1
     //controls.verticalMax = 2.2
 
-    const {things, config} = s,
+    const {things, config} = s
     geoms = {
         f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
         v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
         p: new THREE.SphereGeometry(20, 20, 20)
     }
 
-    things.forEach(t => scene.add(addBlob(Object.assign(t, {
-        shininess: shininess[t.t],
-        geom: geoms[t.t]
-    }))))
+    things.forEach(t => {
+        scene.add(addBlob(Object.assign(t, {
+            shininess: shininess[t.t],
+            specular: specular[t.t],
+            geom: geoms[t.t]
+        })))
+        if (t.t === 'p') {
+            leaderboard[t.id] = t
+        }
+    })
 
     let light = new THREE.DirectionalLight(0xffffff)
     light.position.set(1, 1, 1)
@@ -141,7 +160,14 @@ function animate() {
     }
 }
 
-let myId
+let me
+
+function updateLeaderboard() {
+    leaderboardDom.innerHTML = Object.keys(leaderboard)
+        .map(k => leaderboard[k])
+        .sort((a, b) => a.m < b.m)
+        .reduce((txt, p) => txt + `<div>${p.name} : ${Math.round(p.m)}</div>`, '')
+}
 
 function setupSocket(sock) {
     sock.on('pong', () => {
@@ -160,12 +186,13 @@ function setupSocket(sock) {
     // Handle connection.
     sock.on('welcome', (s) => {
         state = init(s)
-        myId = state.me.id
+        me = state.me
+        nameLabel.innerText = me.name   //TODO: xss vulnerability - html encode
         animate()
     })
 
     sock.on('update', s => {
-        const {changed, deleted, added} = s
+        const {changed, deleted} = s
         changed.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
@@ -175,14 +202,27 @@ function setupSocket(sock) {
                 console.log(`we got a new thing ${t.name}`)
                 scene.add(addBlob(Object.assign(t, {
                     shininess: shininess[t.t],
+                    specular: specular[t.t],
                     geom: geoms[t.t]
                 })))
+            }
+            if (t.id === me.id) {
+                massLabel.innerText = Math.round(t.m)
+            }
+            if (t.t === 'p') {
+                leaderboard[t.id] = t
             }
         })
         deleted.forEach(id => {
             console.log(`deleted thing ${id}`)
             scene.remove(allMeshes[id])
+            delete leaderboard[id]
+            if (id === me.id) {
+                alert('You is dead!')
+                window.location.reload()
+            }
         })
+        updateLeaderboard()
     })
     return sock
 }
