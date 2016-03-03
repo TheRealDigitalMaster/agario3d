@@ -140,6 +140,8 @@ function animate() {
     }
 }
 
+let myId
+
 function setupSocket(sock) {
     sock.on('pong', () => {
         debug('pong')
@@ -157,11 +159,12 @@ function setupSocket(sock) {
     // Handle connection.
     sock.on('welcome', (s) => {
         state = init(s)
+        myId = state.me.id
         animate()
     })
 
     sock.on('update', s => {
-        const {changed, deleted} = s
+        const {changed, deleted, added} = s
         changed.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
@@ -172,6 +175,12 @@ function setupSocket(sock) {
         deleted.forEach(id => {
             console.log(`deleted thing ${id}`)
             scene.remove(allMeshes[id])
+        })
+        added.forEach(t => {
+            if (t.id !== myId) {
+                console.log(`thing added ${t.name}`)
+                //TODO - create a mesh for the new thing and add it to the scene
+            }
         })
     })
     return sock
