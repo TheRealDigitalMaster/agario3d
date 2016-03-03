@@ -116,9 +116,6 @@ function snapshotState(state) {
 
 function diff(prev, next) {
     return {
-        added: Object.keys(next)
-            .filter(k => prev[k] === undefined)
-            .map(k => next[k]),
         deleted: Object.keys(prev).filter(k => next[k] === undefined),
         changed: Object.keys(next)
             .filter(k => prev[k] === undefined || prev[k] !== next[k])

@@ -22,7 +22,13 @@ function debug(msg) {
 }
 
 let camera, controls, scene, renderer, socket, state
-const allMeshes = {}
+const allMeshes = {},
+    shininess = {
+        f: 20,
+        v: 150,
+        p: 20
+    }
+let geoms = { }
 
 const startBtn = document.getElementById('start'),
     startWrapper = document.getElementById('start-wrapper'),
@@ -73,16 +79,11 @@ function init(s) {
     //controls.verticalMax = 2.2
 
     const {things, config} = s,
-        shininess = {
-            f: 20,
-            v: 150,
-            p: 20
-        },
-        geoms = {
-            f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
-            v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
-            p: new THREE.SphereGeometry(20, 20, 20)
-        }
+    geoms = {
+        f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
+        v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
+        p: new THREE.SphereGeometry(20, 20, 20)
+    }
 
     things.forEach(t => scene.add(addBlob(Object.assign(t, {
         shininess: shininess[t.t],
@@ -170,17 +171,17 @@ function setupSocket(sock) {
             if (mesh) {
                 mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
+            } else {
+                console.log(`we got a new thing ${t.name}`)
+                scene.add(addBlob(Object.assign(t, {
+                    shininess: shininess[t.t],
+                    geom: geoms[t.t]
+                })))
             }
         })
         deleted.forEach(id => {
             console.log(`deleted thing ${id}`)
             scene.remove(allMeshes[id])
-        })
-        added.forEach(t => {
-            if (t.id !== myId) {
-                console.log(`thing added ${t.name}`)
-                //TODO - create a mesh for the new thing and add it to the scene
-            }
         })
     })
     return sock
