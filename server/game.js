@@ -132,8 +132,32 @@ function diff(prev, next) {
     }
 }
 
+function topUpFood(things){
+    const food = getThingsOfType(things, types.food),
+        shortfall = config.food.num - food.length
+
+    if(shortfall === 0){
+        return things
+    }
+
+    repeatedly(shortfall, () => {
+        const f = Object.assign({
+            c: randomColour(),
+            id: ++nextId,
+            t: types.food,
+            r: config.food.radius,
+            m: massFromRadius(config.food.radius)
+        }, randomPosition())
+        things[f.id] = f
+    })
+
+    console.log(`added ${shortfall} more food items`)
+
+    return things
+}
+
 function delta() {
-    const d = diff(snapshot, checkCollisions(things))
+    const d = diff(snapshot, checkCollisions(topUpFood(things)))
     snapshot = snapshotState(things)
     return d
 }

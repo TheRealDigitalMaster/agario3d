@@ -199,7 +199,7 @@ function setupSocket(sock) {
                 mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
             } else {
-                console.log(`we got a new thing ${t.name}`)
+                console.log(`we got a new thing ${JSON.stringify(t)}`)
                 scene.add(addBlob(Object.assign(t, {
                     shininess: shininess[t.t],
                     specular: specular[t.t],
