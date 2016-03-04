@@ -23,6 +23,7 @@ function debug(msg) {
 
 let camera, controls, scene, renderer, socket, state
 const allMeshes = {},
+    movementSpeed = 3,
     shininess = {
         f: 20,
         v: 150,
@@ -40,6 +41,8 @@ const startBtn = document.getElementById('start'),
     nameField = document.getElementById('name'),
     nameLabel = document.getElementById('my-name'),
     massLabel = document.getElementById('my-mass'),
+    radiusLabel = document.getElementById('my-radius'),
+    speedLabel = document.getElementById('my-speed'),
     leaderboardDom = document.getElementById('leaderboard'),
     leaderboard = {}
 nameField.focus()
@@ -84,7 +87,8 @@ function init(s) {
 
     controls = THREE.FlyControls(camera, renderer.domElement)
     //controls = THREE.FirstPersonControls(camera, renderer.domElement)
-    //controls.movementSpeed = 1000
+    controls.movementSpeed = movementSpeed
+    controls.rollSpeed = 0.01
     //controls.lookSpeed = 0.125
     //controls.lookVertical = true
     //controls.constrainVertical = true
@@ -187,7 +191,7 @@ function setupSocket(sock) {
     sock.on('welcome', (s) => {
         state = init(s)
         me = state.me
-        nameLabel.innerText = me.name   //TODO: xss vulnerability - html encode
+        nameLabel.innerText = `Name: ${me.name}`   //TODO: xss vulnerability - html encode
         animate()
     })
 
@@ -199,6 +203,7 @@ function setupSocket(sock) {
                 if (t.t === 'p') {
                     const scale = t.r / state.config.startRadius
                     mesh.scale.set(scale, scale, scale)
+                    controls.movementSpeed = movementSpeed / scale
                 }
                 mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
@@ -211,7 +216,9 @@ function setupSocket(sock) {
                 })))
             }
             if (t.id === me.id) {
-                massLabel.innerText = Math.round(t.m)
+                massLabel.innerText = `Mass: ${Math.round(t.m)}`
+                radiusLabel.innerText = `Radius: ${Math.round(t.r)}`
+                speedLabel.innerText = `Speed: ${Math.round(controls.movementSpeed)}`
             }
             if (t.t === 'p') {
                 leaderboard[t.id] = t
