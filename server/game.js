@@ -205,7 +205,8 @@ module.exports = {
             config: {
                 foodRadius: config.food.radius,
                 virusRadius: config.viruses.radius,
-                virusColour: config.viruses.colour
+                virusColour: config.viruses.colour,
+                startRadius: config.startRadius
             }
         }
     }

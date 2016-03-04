@@ -67,7 +67,7 @@ function addBlob(options){
 
 function init(s) {
     scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0xcccccc, 0.003)
+    scene.fog = new THREE.FogExp2(0xcccccc, 0.002)
     renderer = new THREE.WebGLRenderer()
     renderer.setClearColor(scene.fog.color)
     renderer.setPixelRatio(window.devicePixelRatio)
@@ -95,7 +95,7 @@ function init(s) {
     geoms = {
         f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
         v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
-        p: new THREE.SphereGeometry(20, 20, 20)
+        p: new THREE.SphereGeometry(config.startRadius, 20, 20)
     }
 
     things.forEach(t => {
@@ -196,6 +196,10 @@ function setupSocket(sock) {
         changed.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
+                if (t.t === 'p') {
+                    const scale = t.r / state.config.startRadius
+                    mesh.scale.set(scale, scale, scale)
+                }
                 mesh.position.set(t.x, t.y, t.z)
                 mesh.updateMatrix()
             } else {
