@@ -5,6 +5,7 @@ import '../img/split.png'
 //import virusImage from '../img/virus.png'
 import '../audio/spawn.mp3'
 import '../audio/split.mp3'
+import '../audio/plop.mp3'
 import { THREE } from 'three'
 import orbitFn from 'three-orbit-controls'
 import flyFn from 'three-fly-controls'
@@ -49,6 +50,8 @@ const startBtn = $get('start'),
     radiusLabel = $get('my-radius'),
     speedLabel = $get('my-speed'),
     leaderboardDom = $get('leaderboard'),
+    spawnAudio = $get('spawn_cell'),
+    eatAudio = $get('eat'),
     leaderboard = {}
 nameField.focus()
 
@@ -237,6 +240,7 @@ function setupSocket(sock) {
                 alert('You is dead!')
                 window.location.reload()
             }
+            eatAudio.play()
         })
         updateLeaderboard()
     })
