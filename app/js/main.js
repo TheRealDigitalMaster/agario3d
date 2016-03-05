@@ -226,7 +226,7 @@ function setupSocket(sock) {
             if (t.id === me.id) {
                 massLabel.innerText = `Mass: ${Math.round(t.m)}`
                 radiusLabel.innerText = `Radius: ${Math.round(t.r)}`
-                speedLabel.innerText = `Speed: ${Math.round(controls.movementSpeed)}`
+                speedLabel.innerText = `Speed: ${Math.round(controls.movementSpeed * 100)}`
             }
             if (t.t === 'p') {
                 leaderboard[t.id] = t
