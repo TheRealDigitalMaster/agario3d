@@ -97,7 +97,7 @@ function addPlayer(player) {
     let p = things[player.id]
     if (!p) {
         p = Object.assign({
-            c: '#ff0000',
+            c: player.colour,
             r: config.startRadius,
             t: types.player,
             m: massFromRadius(config.startRadius)

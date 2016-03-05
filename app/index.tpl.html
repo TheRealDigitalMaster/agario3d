@@ -11,7 +11,14 @@
     </div>
 
     <div id="start-wrapper">
-        <input type="text" id="name" placeholder="Nickname">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Choose your name (no XSS please)">
+        </div>
+        <div>
+            <label for="colour">Colour</label>
+            <input type="color" id="colour" placeholder="Choose your colour">
+        </div>
         <button id="start">
             Join Game
         </button>

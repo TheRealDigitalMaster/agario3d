@@ -10,6 +10,10 @@ body {
   overflow: hidden;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 #info {
   color:#000;
   position: absolute;
@@ -31,8 +35,9 @@ a {
   background: #ffffff;
   border-radius: 5px;
   border:1px solid #cccccc;
-  width:200px;
+  width:400px;
   margin:auto;
+  margin:50px auto 0 auto;
   -webkit-box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
   -moz-box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
   box-shadow: 5px 5px 10px 1px rgba(204,204,204,1);
@@ -40,11 +45,17 @@ a {
   button {
     padding:20px;
     border-radius: 5px;
+    margin-top:10px;
   }
 
   input {
-    margin:20px 0 20px 0;
+    margin:10px 0 10px 0;
     padding:10px;
+    width:100%;
+
+    &[type=color] {
+      height : 40px;
+    }
   }
 }
 
@@ -62,7 +73,6 @@ a {
   right:10px;
 
   :first-child {
-    color: #ff0000;
     font-weight:bold;
   }
 }

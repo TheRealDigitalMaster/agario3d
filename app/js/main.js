@@ -21,6 +21,10 @@ function debug(msg) {
     console.log(msg)
 }
 
+function $get(id) {
+    return document.getElementById(id)
+}
+
 let camera, controls, scene, renderer, socket, state
 const allMeshes = {},
     movementSpeed = 3,
@@ -36,19 +40,20 @@ const allMeshes = {},
     }
 let geoms = { }
 
-const startBtn = document.getElementById('start'),
-    startWrapper = document.getElementById('start-wrapper'),
-    nameField = document.getElementById('name'),
-    nameLabel = document.getElementById('my-name'),
-    massLabel = document.getElementById('my-mass'),
-    radiusLabel = document.getElementById('my-radius'),
-    speedLabel = document.getElementById('my-speed'),
-    leaderboardDom = document.getElementById('leaderboard'),
+const startBtn = $get('start'),
+    startWrapper = $get('start-wrapper'),
+    nameField = $get('name'),
+    nameLabel = $get('my-name'),
+    colourField = $get('colour'),
+    massLabel = $get('my-mass'),
+    radiusLabel = $get('my-radius'),
+    speedLabel = $get('my-speed'),
+    leaderboardDom = $get('leaderboard'),
     leaderboard = {}
 nameField.focus()
 
 startBtn.addEventListener('click', () => {
-    startGame(nameField.value)
+    startGame(nameField.value, colourField.value)
     startWrapper.classList.add('hide')
 })
 
@@ -76,7 +81,7 @@ function init(s) {
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
 
-    const container = document.getElementById('container')
+    const container = $get('container')
     container.appendChild(renderer.domElement)
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000)
@@ -170,7 +175,7 @@ function updateLeaderboard() {
     leaderboardDom.innerHTML = Object.keys(leaderboard)
         .map(k => leaderboard[k])
         .sort((a, b) => a.m < b.m)
-        .reduce((txt, p) => txt + `<div>${p.name} : ${Math.round(p.m)}</div>`, '')
+        .reduce((txt, p) => txt + `<div style="color: ${p.c}">${p.name} : ${Math.round(p.m)}</div>`, '')
 }
 
 function setupSocket(sock) {
@@ -238,6 +243,6 @@ function setupSocket(sock) {
     return sock
 }
 
-function startGame(name) {
-    socket = setupSocket(io({query: `name=${name}`}))
+function startGame(name, colour) {
+    socket = setupSocket(io({query: `name=${name}&colour=${colour}`}))
 }
