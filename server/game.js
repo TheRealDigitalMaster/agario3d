@@ -6,6 +6,7 @@
 const config = {
     dimensions: [1000, 1000, 1000],
     startRadius: 30,
+    movingFood: true,
     food: {
         num: 500,
         radius: 10
@@ -132,8 +133,22 @@ function diff(prev, next) {
     }
 }
 
+function moveFood(food) {
+    if (!config.movingFood) {
+        return food
+    }
+    const timer = 0.0001 * Date.now()
+    food.forEach((f, i) => {
+        things[f.id] = Object.assign({}, f, {
+            x: 500 * Math.cos( timer + i ),
+            y: 500 * Math.sin( timer + i * 1.1 )
+        })
+    })
+    return food
+}
+
 function topUpFood(things){
-    const food = getThingsOfType(things, types.food),
+    const food = moveFood(getThingsOfType(things, types.food)),
         shortfall = config.food.num - food.length
 
     if(shortfall === 0){
@@ -157,6 +172,9 @@ function topUpFood(things){
 }
 
 function delta() {
+
+    //http://threejs.org/examples/#webgl_materials_variations_standard
+
     const d = diff(snapshot, checkCollisions(topUpFood(things)))
     snapshot = snapshotState(things)
     return d
