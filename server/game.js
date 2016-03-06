@@ -6,7 +6,7 @@
 const config = {
     dimensions: [1000, 1000, 1000],
     startRadius: 30,
-    movingFood: false,
+    movingFood: true,
     food: {
         num: 500,
         radius: 10
@@ -32,7 +32,6 @@ const types = {
 
 const things = {}
 let snapshot = {}
-
 let nextId = 0
 
 function massFromRadius(radius) {
@@ -75,7 +74,6 @@ function checkCollisions(things) {
                     m: mass,
                     r: rad
                 })
-                console.log(`p1 changed to ${JSON.stringify(things[p1.id])}`)
                 console.log('nom nom nom')
             }
         })
@@ -142,10 +140,10 @@ function diff(prev, next) {
 function moveStuff(speed, stuff) {
     const timer = speed * Date.now(),
         [x, y] = config.dimensions
-    stuff.forEach((f, i) => {
+    stuff.forEach(f => {
         things[f.id] = Object.assign({}, f, {
-            x: (x / 2) * Math.cos( timer + i ),
-            y: (y / 2) * Math.sin( timer + i * 1.1 )
+            x: (x / 2) * Math.cos( timer + f.id ),
+            y: (y / 2) * Math.sin( timer + f.id * 1.1 )
         })
     })
     return stuff
@@ -171,7 +169,6 @@ function topUpFood(things){
     })
 
     console.log(`added ${shortfall} more food items`)
-
     return things
 }
 
