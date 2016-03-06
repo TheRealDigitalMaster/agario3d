@@ -6,15 +6,19 @@
 const config = {
     dimensions: [1000, 1000, 1000],
     startRadius: 30,
-    movingFood: true,
+    movingFood: false,
     food: {
         num: 500,
         radius: 10
     },
+    bots: {
+        num: 20,
+        colour: 0x0000ff
+    },
     viruses: {
         num: 20,
         radius: 50,
-        colour: '#00ff00'
+        colour: 0x00ff00
     },
     updatesPerSecond: 60
 }
@@ -56,10 +60,12 @@ function getThingsOfType(things, type) {
 
 function checkCollisions(things) {
     const players = getThingsOfType(things, types.player),
+        bots = getThingsOfType(things, types.bot),
+        agents = players.concat(bots),
         food = getThingsOfType(things, types.food),
-        both = players.concat(food)
+        both = agents.concat(food)
 
-    players.forEach(p1 => {
+    agents.forEach(p1 => {
         both.forEach(b1 => {
             if (p1 !== b1 && contains(p1, b1)) {
                 delete things[b1.id]
@@ -133,31 +139,29 @@ function diff(prev, next) {
     }
 }
 
-function moveFood(food) {
-    if (!config.movingFood) {
-        return food
-    }
-    const timer = 0.0001 * Date.now()
-    food.forEach((f, i) => {
+function moveStuff(speed, stuff) {
+    const timer = speed * Date.now(),
+        [x, y] = config.dimensions
+    stuff.forEach((f, i) => {
         things[f.id] = Object.assign({}, f, {
-            x: 500 * Math.cos( timer + i ),
-            y: 500 * Math.sin( timer + i * 1.1 )
+            x: (x / 2) * Math.cos( timer + i ),
+            y: (y / 2) * Math.sin( timer + i * 1.1 )
         })
     })
-    return food
+    return stuff
 }
 
 function topUpFood(things){
-    const food = moveFood(getThingsOfType(things, types.food)),
+    const food = getThingsOfType(things, types.food),
         shortfall = config.food.num - food.length
 
-    if(shortfall === 0){
+    if (shortfall === 0){
         return things
     }
 
     repeatedly(shortfall, () => {
         const f = Object.assign({
-            c: randomColour(),
+            c: 0xffffff,
             id: ++nextId,
             t: types.food,
             r: config.food.radius,
@@ -172,9 +176,11 @@ function topUpFood(things){
 }
 
 function delta() {
-
     //http://threejs.org/examples/#webgl_materials_variations_standard
-
+    if (config.movingFood) {
+        moveStuff(0.00001, getThingsOfType(things, types.food))
+    }
+    moveStuff(0.00003, getThingsOfType(things, types.bot))
     const d = diff(snapshot, checkCollisions(topUpFood(things)))
     snapshot = snapshotState(things)
     return d
@@ -185,7 +191,7 @@ module.exports = {
         console.log('start game')
         repeatedly(config.food.num, () => {
             const f = Object.assign({
-                c: randomColour(),
+                c: 0xffffff,
                 id: ++nextId,
                 t: types.food,
                 r: config.food.radius,
@@ -202,6 +208,17 @@ module.exports = {
                 m: massFromRadius(config.viruses.radius)
             }, randomPosition())
             things[v.id] = v
+        })
+        repeatedly(config.bots.num, () => {
+            const b = Object.assign({
+                c: config.bots.colour,
+                id: ++nextId,
+                name: `Bot ${nextId}`,
+                t: types.bot,
+                r: config.startRadius,
+                m: massFromRadius(config.startRadius)
+            }, randomPosition())
+            things[b.id] = b
         })
         setInterval(updateFn, 1000 / config.updatesPerSecond)
         return delta()

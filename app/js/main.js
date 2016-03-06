@@ -32,12 +32,14 @@ const allMeshes = {},
     shininess = {
         f: 20,
         v: 150,
-        p: 20
+        p: 20,
+        b: 20
     },
     specular = {
         f: 0x003300,
         v: 0xffffff,
-        p: 0xffffff
+        p: 0xffffff,
+        b: 0xffffff
     }
 let geoms = { }
 
@@ -90,7 +92,6 @@ function init(s) {
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000)
     camera.position.x = s.me.x
     camera.position.y = s.me.y
-    //camera.position.z = s.me.z + 50
     camera.position.z = s.me.z
 
     controls = THREE.FlyControls(camera, renderer.domElement)
@@ -107,7 +108,8 @@ function init(s) {
     geoms = {
         f: new THREE.SphereGeometry(config.foodRadius, 20, 20),
         v: new THREE.SphereGeometry(config.virusRadius, 20, 20),
-        p: new THREE.SphereGeometry(config.startRadius, 20, 20)
+        p: new THREE.SphereGeometry(config.startRadius, 20, 20),
+        b: new THREE.SphereGeometry(config.startRadius, 20, 20)
     }
 
     things.forEach(t => {
@@ -208,7 +210,7 @@ function setupSocket(sock) {
         changed.forEach(t => {
             const mesh = allMeshes[t.id]
             if (mesh) {
-                if (t.t === 'p') {
+                if (t.t === 'p' || t.t === 'b') {
                     const scale = t.r / state.config.startRadius
                     mesh.scale.set(scale, scale, scale)
                     controls.movementSpeed = movementSpeed / scale
