@@ -154,9 +154,19 @@ let prevPosition = {
     z: 0
 }
 
-function animate() {
+function pulseViruses(delta) {
+    Object.keys(allMeshes).filter(k => allMeshes[k].geometry === geoms.v)
+        .forEach(k => {
+            const scale = 1 + (Math.sin(delta * 0.005 + parseInt(k, 10)) / 50)
+            allMeshes[k].scale.set(scale, scale, scale)
+            allMeshes[k].updateMatrix()
+        })
+}
+
+function animate(delta) {
     requestAnimationFrame(animate)
     controls.update() // required if controls.enableDamping = true, or if controls.autoRotate = true
+    pulseViruses(delta)
     render()
     if (prevPosition.x !== camera.position.x
         || prevPosition.y !== camera.position.y
