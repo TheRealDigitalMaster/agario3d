@@ -149,9 +149,9 @@ function moveStuff(speed, stuff) {
     return stuff
 }
 
-function topUpFood(things){
-    const food = getThingsOfType(things, types.food),
-        shortfall = config.food.num - food.length
+function topUpThings(things, type, min, radius, colour){
+    const ofType = getThingsOfType(things, type),
+        shortfall = min - ofType.length
 
     if (shortfall === 0){
         return things
@@ -159,16 +159,16 @@ function topUpFood(things){
 
     repeatedly(shortfall, () => {
         const f = Object.assign({
-            c: 0xffffff,
+            c: colour,
             id: ++nextId,
-            t: types.food,
-            r: config.food.radius,
-            m: massFromRadius(config.food.radius)
+            t: type,
+            r: radius,
+            m: massFromRadius(radius)
         }, randomPosition())
         things[f.id] = f
     })
 
-    console.log(`added ${shortfall} more food items`)
+    console.log(`topped up shortfall of ${shortfall} for type ${type}`)
     return things
 }
 
@@ -178,7 +178,10 @@ function delta() {
         moveStuff(0.00001, getThingsOfType(things, types.food))
     }
     moveStuff(0.00003, getThingsOfType(things, types.bot))
-    const d = diff(snapshot, checkCollisions(topUpFood(things)))
+    const d = diff(snapshot, checkCollisions(
+        topUpThings(
+            topUpThings(things, types.bot, config.bots.num, config.startRadius, config.bots.colour),
+            types.food, config.food.num, config.food.radius, 0xffffff)))
     snapshot = snapshotState(things)
     return d
 }
