@@ -17,11 +17,6 @@ import io from 'socket.io-client'
 
 //TODO switch to FirstPersonControls
 
-
-function debug(msg) {
-    console.log(msg)
-}
-
 function $get(id) {
     return document.getElementById(id)
 }
@@ -191,7 +186,7 @@ function updateLeaderboard() {
 
 function setupSocket(sock) {
     sock.on('pong', () => {
-        debug('pong')
+        console.log('pong')
     })
 
     // Handle error.
