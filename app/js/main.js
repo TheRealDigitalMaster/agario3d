@@ -26,7 +26,7 @@ function $get(id) {
     return document.getElementById(id)
 }
 
-let camera, controls, scene, renderer, socket, state
+let camera, controls, scene, renderer, socket, state, me
 const allMeshes = {},
     movementSpeed = 3,
     shininess = {
@@ -66,14 +66,15 @@ function addBlob(options){
     const material = new THREE.MeshPhongMaterial({
             color: options.c,
             specular: options.specular,
+            transparent: options.transparent || false,
+            opacity: options.opacity || 1,
+            wireframe: options.wireframe,
             shininess: options.shininess
         }),
         mesh = new THREE.Mesh(options.geom, material)
     mesh.position.x = options.x
     mesh.position.y = options.y
     mesh.position.z = options.z
-    mesh.updateMatrix()
-    mesh.matrixAutoUpdate = false
     allMeshes[options.id] = mesh
     return mesh
 }
@@ -90,19 +91,8 @@ function init(s) {
     container.appendChild(renderer.domElement)
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.x = s.me.x
-    camera.position.y = s.me.y
-    camera.position.z = s.me.z
-
-    controls = THREE.FlyControls(camera, renderer.domElement)
-    //controls = THREE.FirstPersonControls(camera, renderer.domElement)
-    controls.movementSpeed = movementSpeed
-    controls.rollSpeed = 0.01
-    //controls.lookSpeed = 0.125
-    //controls.lookVertical = true
-    //controls.constrainVertical = true
-    //controls.verticalMin = 1.1
-    //controls.verticalMax = 2.2
+    camera.position.set(s.me.x, s.me.y, s.me.z)
+    camera.lookAt(scene.position)
 
     const {things, config} = s
     geoms = {
@@ -116,12 +106,20 @@ function init(s) {
         scene.add(addBlob(Object.assign(t, {
             shininess: shininess[t.t],
             specular: specular[t.t],
+            transparent: t.id === s.me.id,
+            opacity: t.id === s.me.id ? 0.3 : 1,
+            wireframe: t.id === s.me.id,
             geom: geoms[t.t]
         })))
         if (t.t === 'p') {
             leaderboard[t.id] = t
         }
     })
+
+    controls = THREE.FlyControls(camera, renderer.domElement)
+    //controls = THREE.FirstPersonControls(allMeshes[s.me.id], renderer.domElement)
+    controls.movementSpeed = movementSpeed
+    controls.rollSpeed = 0.01
 
     let light = new THREE.DirectionalLight(0xffffff)
     light.position.set(1, 1, 1)
@@ -165,26 +163,24 @@ function pulseViruses(delta) {
 
 function animate(delta) {
     requestAnimationFrame(animate)
-    controls.update() // required if controls.enableDamping = true, or if controls.autoRotate = true
     pulseViruses(delta)
+    controls.update(delta) // required if controls.enableDamping = true, or if controls.autoRotate = true
+
     render()
-    if (prevPosition.x !== camera.position.x
-        || prevPosition.y !== camera.position.y
-        || prevPosition.z !== camera.position.z) {
-        socket.emit('position', {
-            x: camera.position.x,
-            y: camera.position.y,
-            z: camera.position.z
-        })
-        prevPosition = {
-            x: camera.position.x,
-            y: camera.position.y,
-            z: camera.position.z
-        }
-    }
+
+    const scale = me.r / state.config.startRadius,
+        rel = new THREE.Vector3(1, -20, -140 * Math.sqrt(scale)),
+        myMesh = allMeshes[me.id],
+        offSet = rel.applyMatrix4(camera.matrix)
+    myMesh.position.copy(offSet)
+
+    socket.emit('position', {
+        x: offSet.x,
+        y: offSet.y,
+        z: offSet.z
+    })
 }
 
-let me
 
 function updateLeaderboard() {
     leaderboardDom.innerHTML = Object.keys(leaderboard)
@@ -225,8 +221,9 @@ function setupSocket(sock) {
                     mesh.scale.set(scale, scale, scale)
                     controls.movementSpeed = movementSpeed / scale
                 }
-                mesh.position.set(t.x, t.y, t.z)
-                mesh.updateMatrix()
+                if (t.id !== me.id) {
+                    mesh.position.set(t.x, t.y, t.z)
+                }
             } else {
                 console.log(`we got a new thing ${JSON.stringify(t)}`)
                 scene.add(addBlob(Object.assign(t, {
@@ -239,6 +236,7 @@ function setupSocket(sock) {
                 massLabel.innerText = `Mass: ${Math.round(t.m)}`
                 radiusLabel.innerText = `Radius: ${Math.round(t.r)}`
                 speedLabel.innerText = `Speed: ${Math.round(controls.movementSpeed * 100)}`
+                me = t
             }
             if (t.t === 'p') {
                 leaderboard[t.id] = t
