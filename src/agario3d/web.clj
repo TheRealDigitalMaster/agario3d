@@ -1,12 +1,18 @@
 (ns agario3d.web
-  (:require [compojure.core :refer [defroutes GET]]
-            [compojure.route :refer [resources]]))
+  (:require [chord.http-kit :refer [with-channel]]
+            [clojure.java.io :as io]
+            [compojure.core :refer [defroutes GET]]
+            [compojure.route :refer [resources]]
+            [agario3d.game-loop :refer [start-game-loop]]))
 
-(defn index [req]
-  {:status  200
-   :headers {"Content-Type" "text/html"}
-   :body    "and this seems to be working just fine"})
+(defn- ws-handler [req]
+  (with-channel req ws-channel
+    (let [id (get (:headers req) "sec-websocket-key")
+          name (:query-string req)]
+    (prn (str "channel started " id " " name))
+    (start-game-loop ws-channel))))
 
 (defroutes app
-  (GET "/" [] index)
+  (GET "/ws" [] ws-handler)
+  (GET "/" [] (slurp (io/resource "public/index.html")))
   (resources "/"))
