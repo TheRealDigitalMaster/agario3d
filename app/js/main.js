@@ -103,7 +103,8 @@ function init(s) {
             specular: specular[t.t],
             transparent: t.id === s.me.id,
             opacity: t.id === s.me.id ? 0.3 : 1,
-            wireframe: t.id === s.me.id,
+            //wireframe: t.id === s.me.id,
+            wireframe: false,
             geom: geoms[t.t]
         })))
         if (t.t === 'p') {

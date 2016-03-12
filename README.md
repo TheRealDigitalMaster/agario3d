@@ -49,3 +49,14 @@ The game will then be accessible at `http://localhost:3000` or the respective se
 
 ---
 
+To get reloading repl working, run:
+lein repl
+(ns user)
+(reset)
+
+and then after changing something
+(reset)
+
+
+To fire up figwheel run
+lein figwheel

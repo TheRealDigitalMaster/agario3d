@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agar.IO 3D</title>
+    <link href="styles.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <audio id="split_cell" src="/app/audio/split.mp3"></audio>
+    <audio id="spawn_cell" src="/app/audio/spawn.mp3"></audio>
+    <audio id="eat" src="/app/audio/plop.mp3"></audio>
+</head>
+<body>
+    <div id="container">
+    </div>
+
+    <div id="start-wrapper">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Choose your name (no XSS please)">
+        </div>
+        <div>
+            <label for="colour">Colour</label>
+            <input type="color" id="colour" placeholder="Choose your colour">
+        </div>
+        <button id="start">
+            Join Game
+        </button>
+    </div>
+    <div id="stats">
+        <div id="my-name"></div>
+        <div id="my-mass"></div>
+        <div id="my-radius"></div>
+        <div id="my-speed"></div>
+    </div>
+
+    <div id="leaderboard">
+
+    </div>
+    <script src="out/goog/base.js"></script>
+    <script src="app.js"></script>
+    <script>goog.require("agario3d.client");</script>
+</body>
+</html>
