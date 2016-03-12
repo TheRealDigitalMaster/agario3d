@@ -5,7 +5,7 @@
 (defn index [req]
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    "just need to reset from the repl to take effect"})
+   :body    "and this seems to be working just fine"})
 
 (defroutes app
   (GET "/" [] index)
