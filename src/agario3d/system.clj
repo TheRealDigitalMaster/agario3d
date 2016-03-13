@@ -1,10 +1,12 @@
 (ns agario3d.system
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.server :refer [run-server]]
-            [agario3d.web :refer [app]]))
+            [agario3d.web :refer [app]]
+            [agario3d.game :refer [start-game]]))
 
 (defn- start-server [handler port]
-  (let [server (run-server handler {:port port})]
+  (let [server (run-server handler {:port port})
+        game (start-game)]
     (println (str "Started server on localhost:" port))
     server))
 

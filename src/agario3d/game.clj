@@ -1,14 +1,15 @@
 (ns agario3d.game)
 
+(def game (atom {}))
+
+(defn get-game []
+    @game)
 
 (defn start-game []
-    {:game 0})
+    (swap! game assoc :game 0))
 
-(defn update-game [game]
-    (assoc game :game (inc (:game game))))
+(defn update-game []
+    (swap! game assoc :game (inc (:game @game))))
 
-(defn prep [game]
-    game)
-
-(defn player-command [game command]
-    game)
+(defn player-command [command]
+    @game)

@@ -16,3 +16,4 @@
   (GET "/ws" [] ws-handler)
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (resources "/"))
+
