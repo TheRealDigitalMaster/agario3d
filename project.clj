@@ -12,6 +12,7 @@
                  [compojure "1.3.4"]
                  [expectations "2.1.2"]
                  [jarohen/chord "0.7.0"]
+                 [prismatic/schema "1.0.5"]
                  [org.clojure/core.async "0.2.374"]]
   :profiles {:dev {:plugins [[lein-cljsbuild "1.0.6"]
                              [lein-figwheel "0.3.7"]]

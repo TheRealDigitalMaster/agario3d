@@ -3,4 +3,4 @@
             [expectations :refer :all]))
 
 
-(expect 2 4)
+(expect 4 4)
