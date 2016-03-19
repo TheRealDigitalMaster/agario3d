@@ -3,6 +3,10 @@
             [schema.core :as s]
             [agario3d.loop :refer [every]]))
 
+(def Pos
+  "Scheme for position vector"
+  {:x s/Num :y s/Num :z s/Num})
+
 (def Config 
   "Schema for the config"
   {:dimensions [s/Num]
@@ -11,10 +15,10 @@
    :food {:num s/Num
           :radius s/Num }
    :bots {:num s/Num
-          :colour s/Num}
+          :colour s/Str}
    :viruses {:num s/Num
              :radius s/Num
-             :colour s/Num}
+             :colour s/Str}
    :updatesPerSecond s/Num})
 
 (def Agent
@@ -34,10 +38,10 @@
              :food { :num 500
                     :radius 10 }
              :bots { :num 20
-                    :colour 0x0000ff }
+                    :colour "0x0000ff" }
              :viruses { :num 20
                        :radius 50
-                       :colour 0x00ff00 }
+                       :colour "0x00ff00" }
              :updatesPerSecond 60 })
 
 (def game (atom {}))
@@ -47,16 +51,42 @@
   [radius :- s/Num]
   radius)
 
-(s/defn createFood  :- Agent []
+(s/defn random-coord :- s/Num
+  [limit]
+  (-> (rand)
+      (- ,, 0.5)
+      (* ,, limit)))
+
+(s/defn random-pos :- Pos
+  []
+  (let [[x y z] (:dimensions config)]
+    {:x (random-coord x)
+     :y (random-coord y)
+     :z (random-coord z)}))
+
+(s/defn create-food  :- Agent []
   (let [radius (get-in config [:food :radius])]
-    {:c 0xffffff
-     :id (swap! next-id inc)
-     :t :food
-     :r radius
-     :m (radius->mass radius)
-     :x 0
-     :y 0
-     :z 0}))
+    (merge  {:c "0xffffff"
+             :id (swap! next-id inc)
+             :t :food
+             :r radius
+             :m (radius->mass radius)} (random-pos))))
+
+(s/defn create-virus  :- Agent []
+  (let [radius (get-in config [:viruses :radius])]
+    (merge  {:c (get-in config [:viruses :colour])             
+             :id (swap! next-id inc)
+             :t :virus
+             :r radius
+             :m (radius->mass radius)} (random-pos))))
+
+(s/defn create-bot  :- Agent []
+  (let [radius (:startRadius config)]
+    (merge  {:c (get-in config [:bots :colour])
+             :id (swap! next-id inc)
+             :t :bot
+             :r radius
+             :m (radius->mass radius)} (random-pos))))
 
 (defn create-new-game
   "Seed the game with food, viruses and bots"
