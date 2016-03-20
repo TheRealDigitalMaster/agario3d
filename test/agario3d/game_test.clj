@@ -1,6 +1,6 @@
 (ns agario3d.game-test
   (:require [agario3d.game :refer :all]
-            [clojure.test :refer [use-fixtures]]
+            [clojure.test :refer [is testing use-fixtures]]
             [schema.core :as s]
             [schema.test :as st]
             [expectations :refer :all]))
@@ -15,12 +15,8 @@
 
 (expect "test" (radius->mass "test"))
 
-(let [food (create-food)
-      bot (create-bot)
-      virus (create-virus)]
-  (expect food (s/validate Agent food))
-  (expect bot (s/validate Agent bot))
-  (expect virus (s/validate Agent virus)))
+(doseq [a [(create-food) (create-bot) (create-virus)]]
+  (expect a (s/validate Agent a)))
 
 (defn between [min max val]
   (and (>= val min) (<= val max)))
@@ -32,3 +28,12 @@
     (expect true (between min max (ks pos))))
   (expect pos (s/validate Pos pos)))
 
+(let [agents (create-agents 5 create-food)]
+  (expect 5 (count agents)))
+
+(let [game (create-new-game)
+      foodNum (get-in config [:food :num])
+      botNum (get-in config [:bots :num])
+      virusNum (get-in config [:viruses :num])
+      items (count (keys game))]
+  (expect items (+ foodNum botNum virusNum)))

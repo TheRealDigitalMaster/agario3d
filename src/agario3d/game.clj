@@ -88,12 +88,20 @@
              :r radius
              :m (radius->mass radius)} (random-pos))))
 
+(s/defn create-agents :- [Agent] [n agentFn]
+  (map (fn [n] (agentFn)) (range n)))
+
 (defn create-new-game
   "Seed the game with food, viruses and bots"
   []
   (swap! game (fn [g]
-                
-                )))
+                (let [foodNum (get-in config [:food :num])
+                      botNum (get-in config [:bots :num])
+                      virusNum (get-in config [:viruses :num])
+                      agents (-> (create-agents foodNum create-food)
+                                 (concat ,, (create-agents botNum create-bot))
+                                 (concat ,, (create-agents virusNum create-virus)))]
+                  (reduce (fn [g a] (assoc g (:id a) a)) g agents)))))
 
 (defn get-game [player]
   (prn (str  "get-game called - for " (:name player)))
