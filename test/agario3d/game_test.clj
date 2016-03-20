@@ -15,5 +15,20 @@
 
 (expect "test" (radius->mass "test"))
 
-(expect 1 (swap! next-id inc))
+(let [food (create-food)
+      bot (create-bot)
+      virus (create-virus)]
+  (expect food (s/validate Agent food))
+  (expect bot (s/validate Agent bot))
+  (expect virus (s/validate Agent virus)))
+
+(defn between [min max val]
+  (and (>= val min) (<= val max)))
+
+(let [min -500
+      max 500
+      pos (random-pos)]
+  (doseq [ks (keys pos)]
+    (expect true (between min max (ks pos))))
+  (expect pos (s/validate Pos pos)))
 

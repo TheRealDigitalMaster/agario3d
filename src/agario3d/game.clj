@@ -23,7 +23,7 @@
 
 (def Agent
   "Schema for an agent in the game"
-  {:c s/Num
+  {:c s/Str
    :id s/Num
    :t s/Keyword
    :r s/Num
