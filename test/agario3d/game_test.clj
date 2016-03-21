@@ -1,5 +1,6 @@
 (ns agario3d.game-test
   (:require [agario3d.game :refer :all]
+            [agario3d.config :refer :all]
             [clojure.test :refer [is testing use-fixtures]]
             [schema.core :as s]
             [schema.test :as st]

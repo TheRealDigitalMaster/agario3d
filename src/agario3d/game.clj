@@ -1,25 +1,12 @@
 (ns agario3d.game
   (:require [clojure.core.async :refer [>! <! alts! chan close! go go-loop timeout]]
             [schema.core :as s]
+            [agario3d.config :refer [config]]
             [agario3d.loop :refer [every]]))
 
 (def Pos
   "Scheme for position vector"
   {:x s/Num :y s/Num :z s/Num})
-
-(def Config 
-  "Schema for the config"
-  {:dimensions [s/Num]
-   :startRadius s/Num
-   :movingFood s/Bool
-   :food {:num s/Num
-          :radius s/Num }
-   :bots {:num s/Num
-          :colour s/Str}
-   :viruses {:num s/Num
-             :radius s/Num
-             :colour s/Str}
-   :updatesPerSecond s/Num})
 
 (def Agent
   "Schema for an agent in the game"
@@ -31,18 +18,6 @@
    :x s/Num
    :y s/Num
    :z s/Num})
-
-(def config { :dimensions [1000 1000 1000]
-             :startRadius 30
-             :movingFood true
-             :food { :num 500
-                    :radius 10 }
-             :bots { :num 20
-                    :colour "0x0000ff" }
-             :viruses { :num 20
-                       :radius 50
-                       :colour "0x00ff00" }
-             :updatesPerSecond 60 })
 
 (def game (atom {}))
 (def next-id (atom 0))
@@ -98,9 +73,9 @@
                 (let [foodNum (get-in config [:food :num])
                       botNum (get-in config [:bots :num])
                       virusNum (get-in config [:viruses :num])
-                      agents (-> (create-agents foodNum create-food)
-                                 (concat ,, (create-agents botNum create-bot))
-                                 (concat ,, (create-agents virusNum create-virus)))]
+                      agents (concat (create-agents foodNum create-food)
+                                     (create-agents botNum create-bot)
+                                     (create-agents virusNum create-virus))]
                   (reduce (fn [g a] (assoc g (:id a) a)) g agents)))))
 
 (defn get-game [player]
