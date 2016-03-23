@@ -3,14 +3,19 @@
             [clojure.java.io :as io]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :refer [resources]]
+            [clojure.string :refer [split]]
+            [clojure.walk :refer [keywordize-keys]]
             [agario3d.game-loop :refer [on-connect]]))
 
 (defn- ws-handler [req]
   (with-channel req ws-channel
     (let [id (get (:headers req) "sec-websocket-key")
-          name (:query-string req)]
-      (prn (str "channel started " id " " name))
-      (on-connect ws-channel {:name name :id id}))))
+          qs (:query-string req)
+          props (keywordize-keys 
+                  (apply hash-map (split qs #"(&|=)")))
+          player (assoc props :id id)]
+      (prn (str "channel started " player))
+      (on-connect ws-channel player))))
 
 (defroutes app
   (GET "/ws" [] ws-handler)

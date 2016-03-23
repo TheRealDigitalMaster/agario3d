@@ -38,3 +38,19 @@
       virusNum (get-in config [:viruses :num])
       items (count (keys game))]
   (expect items (+ foodNum botNum virusNum)))
+
+(let [p (create-player {:id "123"
+                        :colour "0xff0000"
+                        :name "jelfs"})]
+  (expect p (s/validate Agent p))
+  (expect "123" (:id p))
+  (expect "0xff0000" (:c p))
+  (expect "jelfs" (:n p))
+  (expect :player (:t p))
+  (expect (:startRadius config) (:r p)))
+
+(let [g (create-new-game)
+      g2 (add-player {:id "123"
+                        :colour "0xff0000"
+                        :name "jelfs"})]
+  (expect (get g2 "123")))

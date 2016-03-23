@@ -7,7 +7,7 @@
 
 (defonce run-once ;; not every figwheel reload
   (go
-    (let [{:keys [ws-channel error]} (<! (ws-ch "ws://localhost:9009/ws?julian"))]
+    (let [{:keys [ws-channel error]} (<! (ws-ch "ws://localhost:9009/ws?name=julian&colour=0xff0000"))]
       (when error (throw error))
       (loop []
         (when-let [game (:message (<! ws-channel))]

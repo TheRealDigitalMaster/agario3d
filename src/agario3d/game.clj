@@ -11,7 +11,8 @@
 (def Agent
   "Schema for an agent in the game"
   {:c s/Str
-   :id s/Num
+   (s/optional-key :n) s/Str
+   :id s/Any  ;;this could be a string or a num
    :t s/Keyword
    :r s/Num
    :m s/Num
@@ -63,6 +64,15 @@
              :r radius
              :m (radius->mass radius)} (random-pos))))
 
+(s/defn create-player  :- Agent [player]
+  (let [radius (:startRadius config)]
+    (merge  {:c (:colour player)
+             :n (:name player)
+             :id (:id player)
+             :t :player
+             :r radius
+             :m (radius->mass radius)} (random-pos))))
+
 (s/defn create-agents :- [Agent] [n agentFn]
   (map (fn [n] (agentFn)) (range n)))
 
@@ -79,7 +89,7 @@
                   (reduce (fn [g a] (assoc g (:id a) a)) g agents)))))
 
 (defn get-game [player]
-  (prn (str  "get-game called - for " (:name player)))
+  ;;(prn (str  "get-game called - for " (:name player)))
   @game)
 
 (defn update-game [delta]
@@ -97,6 +107,6 @@
   @game)
 
 (defn add-player [player]
-  @game)
-
+  (let [p (create-player player)]
+    (swap! game assoc (:id p) p)))
 
