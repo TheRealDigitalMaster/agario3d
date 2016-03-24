@@ -2,11 +2,11 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.server :refer [run-server]]
             [agario3d.web :refer [app]]
-            [agario3d.game :refer [start-game]]))
+            [agario3d.config :refer [config]]
+            [agario3d.game :refer [create-new-game]]))
 
 (defn- start-server [handler port]
-  (let [server (run-server handler {:port port})
-        game (start-game)]
+  (let [server (run-server handler {:port port})]
     (println (str "Started server on localhost:" port))
     server))
 
@@ -17,7 +17,10 @@
 (defrecord Agario3D []
   component/Lifecycle
   (start [this]
-    (assoc this :server (start-server #'app 9009)))
+    (-> this
+        (assoc ,,, :server (start-server #'app 9009))
+        (assoc ,,, :config config)
+        (assoc ,,, :game (create-new-game))))
   (stop [this]
     (stop-server (:server this))
     (dissoc this :server)))

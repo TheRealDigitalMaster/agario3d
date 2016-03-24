@@ -1,7 +1,7 @@
 (ns agario3d.game-loop
   (:require [clojure.core.async :refer [>! <! alts! chan close! go go-loop timeout]]
             [agario3d.loop :refer [every]]
-            [agario3d.game :refer [get-game add-player player-command]]))
+            [agario3d.game :refer [add-player player-command]]))
 
 (defn on-connect [ws-channel player]
   (go

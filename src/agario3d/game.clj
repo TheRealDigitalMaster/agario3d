@@ -20,7 +20,6 @@
    :y s/Num
    :z s/Num})
 
-(def game (atom {}))
 (def next-id (atom 0))
 
 (s/defn radius->mass :- s/Num 
@@ -79,34 +78,30 @@
 (defn create-new-game
   "Seed the game with food, viruses and bots"
   []
-  (swap! game (fn [g]
-                (let [foodNum (get-in config [:food :num])
-                      botNum (get-in config [:bots :num])
-                      virusNum (get-in config [:viruses :num])
-                      agents (concat (create-agents foodNum create-food)
-                                     (create-agents botNum create-bot)
-                                     (create-agents virusNum create-virus))]
-                  (reduce (fn [g a] (assoc g (:id a) a)) g agents)))))
+  (let [foodNum (get-in config [:food :num])
+        botNum (get-in config [:bots :num])
+        virusNum (get-in config [:viruses :num])
+        agents (concat (create-agents foodNum create-food)
+                       (create-agents botNum create-bot)
+                       (create-agents virusNum create-virus))]
+    (atom (reduce (fn [g a] (assoc g (:id a) a)) {} agents))))
 
-(defn get-game [player]
-  @game)
+(defn update-game [game delta]
+  game)
 
-(defn update-game [delta]
-  (swap! game assoc :game (inc (:game @game))))
-
-(defn start-game []
+(defn start-game [game]
   (go
     (let [tick (every (/ 1000 (:updatesPerSecond config)))]
-      (loop [game (create-new-game)]
+      (loop [game game]
         (let [delta (<! tick)]
           (prn (str "performing an update of the game state after " delta))
-          (recur (update-game delta)))))))
+          (recur (update-game game delta)))))))
 
-(defn player-command [command]
+(defn player-command [game command]
   (prn (str "received a message from the player: " command))
-  @game)
+  game)
 
-(defn add-player [player]
+(defn add-player [game player]
   (let [p (create-player player)]
     (swap! game assoc (:id p) p)))
 
