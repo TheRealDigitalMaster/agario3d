@@ -36,7 +36,7 @@
       foodNum (get-in config [:food :num])
       botNum (get-in config [:bots :num])
       virusNum (get-in config [:viruses :num])
-      items (count (keys game))]
+      items (count (keys @game))]
   (expect items (+ foodNum botNum virusNum)))
 
 (let [p (create-player {:id "123"
@@ -49,8 +49,8 @@
   (expect :player (:t p))
   (expect (:startRadius config) (:r p)))
 
-(let [g (create-new-game)
-      g2 (add-player {:id "123"
-                        :colour "0xff0000"
-                        :name "jelfs"})]
-  (expect (get g2 "123")))
+(let [g (-> (create-new-game)
+            (add-player ,,, {:id "123"
+                             :colour "0xff0000"
+                             :name "jelfs"}))]
+  (expect (get g "123")))

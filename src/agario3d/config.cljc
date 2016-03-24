@@ -4,6 +4,7 @@
 (def Config 
   "Schema for the config"
   {:dimensions [s/Num]
+   :port s/Num
    :startRadius s/Num
    :movingFood s/Bool
    :food {:num s/Num
@@ -16,6 +17,7 @@
    :updatesPerSecond s/Num})
 
 (def config { :dimensions [1000 1000 1000]
+             :port 9009
              :startRadius 30
              :movingFood true
              :food { :num 500

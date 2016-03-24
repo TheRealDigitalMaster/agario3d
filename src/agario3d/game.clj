@@ -78,16 +78,17 @@
 (defn create-new-game
   "Seed the game with food, viruses and bots"
   []
-  (let [foodNum (get-in config [:food :num])
-        botNum (get-in config [:bots :num])
-        virusNum (get-in config [:viruses :num])
-        agents (concat (create-agents foodNum create-food)
-                       (create-agents botNum create-bot)
-                       (create-agents virusNum create-virus))]
-    (atom (reduce (fn [g a] (assoc g (:id a) a)) {} agents))))
+  (prn "creating a brand new game")
+  (atom  (let [foodNum (get-in config [:food :num])
+               botNum (get-in config [:bots :num])
+               virusNum (get-in config [:viruses :num])
+               agents (concat (create-agents foodNum create-food)
+                              (create-agents botNum create-bot)
+                              (create-agents virusNum create-virus))]
+           (reduce (fn [g a] (assoc g (:id a) a)) {} agents))))
 
 (defn update-game [game delta]
-  game)
+  (swap! game assoc :game (inc (:game @game))))
 
 (defn start-game [game]
   (go
@@ -98,10 +99,10 @@
           (recur (update-game game delta)))))))
 
 (defn player-command [game command]
-  (prn (str "received a message from the player: " command))
   game)
 
 (defn add-player [game player]
   (let [p (create-player player)]
+    (prn (str "added player " player))
     (swap! game assoc (:id p) p)))
 

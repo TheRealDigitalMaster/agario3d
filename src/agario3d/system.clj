@@ -1,14 +1,11 @@
 (ns agario3d.system
   (:require [com.stuartsierra.component :as component]
-            [org.httpkit.server :refer [run-server]]
-            [agario3d.web :refer [app]]
+            [agario3d.web :refer [app init-server]]
             [agario3d.config :refer [config]]
             [agario3d.game :refer [create-new-game]]))
 
-(defn- start-server [handler port]
-  (let [server (run-server handler {:port port})]
-    (println (str "Started server on localhost:" port))
-    server))
+(defn- start-server [game handler port]
+  (init-server game handler port))
 
 (defn- stop-server [server]
   (when server
@@ -17,13 +14,14 @@
 (defrecord Agario3D []
   component/Lifecycle
   (start [this]
+    (let [game (create-new-game)]
     (-> this
-        (assoc ,,, :server (start-server #'app 9009))
+        (assoc ,,, :server (start-server game #'app (:port config)))
         (assoc ,,, :config config)
-        (assoc ,,, :game (create-new-game))))
+        (assoc ,,, :game game))))
   (stop [this]
     (stop-server (:server this))
-    (dissoc this :server)))
+    (dissoc this :server :config :game)))
 
 (defn create-system []
   (Agario3D.))
