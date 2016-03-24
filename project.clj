@@ -16,7 +16,7 @@
                  [org.clojure/core.async "0.2.374"]]
   :profiles {:dev {:plugins [[lein-cljsbuild "1.0.6"]
                              [lein-figwheel "0.3.7"]
-                             [com.jakemccrary/lein-test-refresh "0.12.0"]]
+                             [lein-autoexpect "1.7.0"]]
                    :dependencies [[reloaded.repl "0.1.0"]]
                    :source-paths ["dev"]
                    :cljsbuild {:builds [{:source-paths ["src" "dev"]
