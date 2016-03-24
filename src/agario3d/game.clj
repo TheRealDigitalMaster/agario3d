@@ -89,7 +89,6 @@
                   (reduce (fn [g a] (assoc g (:id a) a)) g agents)))))
 
 (defn get-game [player]
-  ;;(prn (str  "get-game called - for " (:name player)))
   @game)
 
 (defn update-game [delta]
@@ -104,6 +103,7 @@
           (recur (update-game delta)))))))
 
 (defn player-command [command]
+  (prn (str "received a message from the player: " command))
   @game)
 
 (defn add-player [player]
