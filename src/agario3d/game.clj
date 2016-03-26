@@ -2,6 +2,7 @@
   (:require [clojure.core.async :refer [>! <! alts! chan close! go go-loop timeout]]
             [schema.core :as s]
             [agario3d.config :refer [config]]
+            [clojure.math.numeric-tower :refer [expt]]
             [agario3d.loop :refer [every]]))
 
 (def Pos
@@ -22,9 +23,28 @@
 
 (def next-id (atom 0))
 
+(def pi (. Math PI))
+
+(s/defn euclidean-distance :- s/Num
+  [p1 :- Pos p2 :- Pos]
+  (let [dx (expt (- (:x p2) (:x p1)) 2)
+        dy (expt (- (:y p2) (:y p1)) 2)
+        dz (expt (- (:z p2) (:z p1)) 2)]
+    (-> (+ dx dy dz)
+        (expt ,, (/ 1 2)))))
+
+(s/defn mass->radius :- s/Num
+  [mass :- s/Num]
+  (-> mass
+      (/ ,, (* pi (/ 4 3)))
+      (expt ,, (/ 1 3))))
+
 (s/defn radius->mass :- s/Num 
   [radius :- s/Num]
-  radius)
+  (-> radius
+      (expt ,,, 3)
+      (* ,, pi)
+      (* ,, (/ 4 3))))
 
 (s/defn random-coord :- s/Num
   [limit]
@@ -74,6 +94,10 @@
 
 (s/defn create-agents :- [Agent] [n agentFn]
   (map (fn [n] (agentFn)) (range n)))
+
+(s/defn things-of-type :- [Agent]
+  [game :- s/Any t :- s/Keyword]
+  (filter (fn [[k v]] (= t (:t v))) game))
 
 (defn create-new-game
   "Seed the game with food, viruses and bots"

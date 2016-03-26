@@ -10,6 +10,7 @@
                  [http-kit "2.1.18"]
                  [com.stuartsierra/component "0.2.3"]
                  [compojure "1.3.4"]
+                 [org.clojure/math.numeric-tower "0.0.4"]
                  [expectations "2.1.2"]
                  [jarohen/chord "0.7.0"]
                  [prismatic/schema "1.0.5"]

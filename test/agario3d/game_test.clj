@@ -2,6 +2,7 @@
   (:require [agario3d.game :refer :all]
             [agario3d.config :refer :all]
             [clojure.test :refer [is testing use-fixtures]]
+            [clojure.math.numeric-tower :refer [expt]]
             [schema.core :as s]
             [schema.test :as st]
             [expectations :refer :all]))
@@ -12,9 +13,17 @@
 
 (expect config (s/validate Config config))
 
-(expect 5 (radius->mass 5))
+(expect 523.5987755982987 (radius->mass 5))
 
-(expect "test" (radius->mass "test"))
+(expect 5.0 (mass->radius 523.5987755982987))
+
+(expect 3.7416573867739413 (euclidean-distance {:x 1 :y 1 :z 1} {:x 2 :y 3 :z 4}))
+
+(let [g (create-new-game)
+      b (things-of-type @g :bot)
+      f (things-of-type @g :food)]
+  (expect (get-in config [:bots :num]) (count b))
+  (expect (get-in config [:food :num]) (count f)))
 
 (doseq [a [(create-food) (create-bot) (create-virus)]]
   (expect a (s/validate Agent a)))
