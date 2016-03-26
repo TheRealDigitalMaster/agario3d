@@ -33,6 +33,12 @@
     (-> (+ dx dy dz)
         (expt ,, (/ 1 2)))))
 
+(s/defn contains? :- s/Bool 
+  [a1 :- Agent a2 :- Agent]
+  (let [d (euclidean-distance a1 a2)]
+    (-> (+ d (:r a2))
+        (< ,, (:r a1)))))
+
 (s/defn mass->radius :- s/Num
   [mass :- s/Num]
   (-> mass

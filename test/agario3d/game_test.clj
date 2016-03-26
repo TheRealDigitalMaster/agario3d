@@ -25,6 +25,10 @@
   (expect (get-in config [:bots :num]) (count b))
   (expect (get-in config [:food :num]) (count f)))
 
+(let [a1 {:r 5 :x 0 :y 0 :z 0}
+      a2 {:r 4 :x 0 :y 0 :z 0}]
+  (expect (contains? a1 a2)))
+
 (doseq [a [(create-food) (create-bot) (create-virus)]]
   (expect a (s/validate Agent a)))
 
