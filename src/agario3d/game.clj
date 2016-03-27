@@ -125,14 +125,22 @@
     (let [tick (every (/ 1000 (:updatesPerSecond config)))]
       (loop [game game]
         (let [delta (<! tick)]
-          (prn (str "performing an update of the game state after " delta))
           (recur (update-game game delta)))))))
 
+(defn update-player-position [game command]
+  (if-let [player (get @game (:id command)) ]
+    (let [updated (merge player command)]
+      (swap! game assoc (:id command) updated)
+      game)
+    game))
+
 (defn player-command [game command]
-  game)
+  (case (:type command)
+    :position (update-player-position game command)
+    game))
 
 (defn add-player [game player]
   (let [p (create-player player)]
-    (prn (str "added player " player))
-    (swap! game assoc (:id p) p)))
+    (swap! game assoc (:id p) p)
+    game))
 

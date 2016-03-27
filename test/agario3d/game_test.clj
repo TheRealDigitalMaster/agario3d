@@ -66,4 +66,18 @@
             (add-player ,,, {:id "123"
                              :colour "0xff0000"
                              :name "jelfs"}))]
-  (expect (get g "123")))
+  (expect (get @g "123")))
+
+(let [g (-> (create-new-game)
+            (add-player ,,, {:id "123"
+                             :x 100
+                             :y 100
+                             :z 100}))
+      g2 (update-player-position g {:id "123" :x 200 :y 300 :z 400})
+      p (get @g2 "123")]
+  (expect 200 (:x p))
+  (expect 300 (:y p))
+  (expect 400 (:z p)))
+
+(expect 123 (player-command 123 {:type :unknown}))
+
