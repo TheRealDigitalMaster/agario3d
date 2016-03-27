@@ -105,6 +105,33 @@
   [game :- s/Any t :- s/Keyword]
   (filter (fn [[k v]] (= t (:t v))) game))
 
+(defn eat [eater eatee]
+  (let [mass (+ (:m eater) (:m eatee))]
+    (assoc eater :m mass :r (mass->radius mass))))
+
+(defn get-collisions [game]
+  (let [players (things-of-type @game :player)
+        bots (things-of-type @game :bot)
+        agents (concat players bots)
+        food (things-of-type @game :food)
+        both (concat agents food)]
+    (for [a agents
+          b both
+          :when (and (not= a b) (contains? a b))]
+      [a b])))
+
+(defn handle-collisions! [game]
+  (let [collisions (get-collisions game)]
+    (swap! game 
+           (fn [g]
+             (reduce 
+               (fn [g [eater eatee]]
+                 (prn "nom nom nom")
+                 (-> g
+                     (dissoc ,, (:id eatee))
+                     (assoc ,, (:id eater) (eat eater eatee)))) g collisions)))
+    game))
+
 (defn create-new-game
   "Seed the game with food, viruses and bots"
   []
