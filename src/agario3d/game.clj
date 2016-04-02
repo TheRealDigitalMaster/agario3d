@@ -110,27 +110,24 @@
     (assoc eater :m mass :r (mass->radius mass))))
 
 (defn get-collisions [game]
-  (let [players (things-of-type @game :player)
-        bots (things-of-type @game :bot)
+  (let [players (things-of-type game :player)
+        bots (things-of-type game :bot)
         agents (concat players bots)
-        food (things-of-type @game :food)
+        food (things-of-type game :food)
         both (concat agents food)]
     (for [a agents
           b both
           :when (and (not= a b) (contains? a b))]
       [a b])))
 
-(defn handle-collisions! [game]
+(defn perform-collisions [game]
   (let [collisions (get-collisions game)]
-    (swap! game 
-           (fn [g]
-             (reduce 
-               (fn [g [eater eatee]]
-                 (prn "nom nom nom")
-                 (-> g
-                     (dissoc ,, (:id eatee))
-                     (assoc ,, (:id eater) (eat eater eatee)))) g collisions)))
-    game))
+    (reduce 
+      (fn [g [eater eatee]]
+        (prn "nom nom nom")
+        (-> g
+            (dissoc ,, (:id eatee))
+            (assoc ,, (:id eater) (eat eater eatee)))) game collisions)))
 
 (defn create-new-game
   "Seed the game with food, viruses and bots"
@@ -142,10 +139,42 @@
                agents (concat (create-agents foodNum create-food)
                               (create-agents botNum create-bot)
                               (create-agents virusNum create-virus))]
-           (reduce (fn [g a] (assoc g (:id a) a)) {} agents))))
+           (reduce (fn [g a] (assoc g (:id a) a)) {:snapshot {}} agents))))
+
+(defn create-snapshot [game]
+  (->> (reduce (fn [snap [k v]]
+                 (assoc snap k v)) {} game)
+        (assoc game :snapshot ,,,)))
+
+(defn create-diff [s game]
+    (reduce (fn [diff [k v]]
+                   (let [snap-val (get k s)]
+                     (if (and (not= :snapshot k) 
+                              (or (nil? snap-val) (not= snap-val v)))
+                       (assoc diff k v)
+                       diff))
+                   ) {} game))
+
+(defn move-bots [game])
+
+(defn move-food [game])
+
+(defn replenish-bots [game])
+
+(defn replenish-food [game])
 
 (defn update-game [game delta]
-  (swap! game assoc :game (inc (:game @game))))
+  (let [snap (:snapshot @game)]
+    (->> (swap! game
+                (fn [g]
+                  (-> g
+                      move-bots
+                      move-food
+                      replenish-bots
+                      replenish-food
+                      perform-collisions
+                      create-snapshot)))
+         (create-diff snap ,,,))))
 
 (defn start-game [game]
   (go
@@ -170,4 +199,8 @@
   (let [p (create-player player)]
     (swap! game assoc (:id p) p)
     game))
+
+(defn remove-player [game {id :id}]
+  (swap! game dissoc id)
+  game)
 

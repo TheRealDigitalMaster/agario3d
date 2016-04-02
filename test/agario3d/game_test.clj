@@ -49,7 +49,8 @@
       foodNum (get-in config [:food :num])
       botNum (get-in config [:bots :num])
       virusNum (get-in config [:viruses :num])
-      items (count (keys @game))]
+      items (count (->> (keys @game)
+                        (filter #(not= :snapshot %) ,,,)))]
   (expect items (+ foodNum botNum virusNum)))
 
 (let [p (create-player {:id "123"
@@ -62,17 +63,19 @@
   (expect :player (:t p))
   (expect (:startRadius config) (:r p)))
 
-(let [g (-> (create-new-game)
+(defn game-with-player []
+  (-> (create-new-game)
             (add-player ,,, {:id "123"
                              :colour "0xff0000"
-                             :name "jelfs"}))]
-  (expect (get @g "123")))
-
-(let [g (-> (create-new-game)
-            (add-player ,,, {:id "123"
+                             :name "jelfs"
                              :x 100
                              :y 100
-                             :z 100}))
+                             :z 100})))
+
+(let [g (game-with-player)]
+  (expect (get @g "123")))
+
+(let [g (game-with-player)
       g2 (update-player-position g {:id "123" :x 200 :y 300 :z 400})
       p (get @g2 "123")]
   (expect 200 (:x p))
@@ -80,4 +83,8 @@
   (expect 400 (:z p)))
 
 (expect 123 (player-command 123 {:type :unknown}))
+
+(let [g (game-with-player)
+      g2 (remove-player g {:id "123"})]
+  (expect nil? (get @g2 "123")))
 
