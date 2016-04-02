@@ -144,16 +144,16 @@
 (defn create-snapshot [game]
   (->> (reduce (fn [snap [k v]]
                  (assoc snap k v)) {} game)
-        (assoc game :snapshot ,,,)))
+       (assoc game :snapshot ,,,)))
 
 (defn create-diff [s game]
-    (reduce (fn [diff [k v]]
-                   (let [snap-val (get k s)]
-                     (if (and (not= :snapshot k) 
-                              (or (nil? snap-val) (not= snap-val v)))
-                       (assoc diff k v)
-                       diff))
-                   ) {} game))
+  (reduce (fn [diff [k v]]
+            (let [snap-val (get k s)]
+              (if (and (not= :snapshot k) 
+                       (or (nil? snap-val) (not= snap-val v)))
+                (assoc diff k v)
+                diff))
+            ) {} game))
 
 (defn move-bots [game])
 
