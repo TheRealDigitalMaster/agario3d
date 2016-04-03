@@ -1,6 +1,7 @@
 (ns agario3d.game
   (:require [clojure.core.async :refer [>! <! alts! chan close! go go-loop timeout]]
             [schema.core :as s]
+            [clj-time.core :as t]
             [agario3d.config :refer [config]]
             [clojure.math.numeric-tower :refer [expt]]
             [agario3d.loop :refer [every]]))
@@ -155,9 +156,33 @@
                 diff))
             ) {} game))
 
-(defn move-bots [game])
+(def min-date (t/date-time 1970 1 1))
 
-(defn move-food [game])
+(defn now []
+  (t/in-millis (t/interval min-date (t/now))))
+
+(defn move-things [game type speed]
+  (let [things (things-of-type game type)
+        timer (* speed (now))
+        [x, y] (:dimensions config)]
+    (->> (map (fn [t]
+                (let [id (:id t)] 
+                  (assoc t :x (-> (+ timer id)
+                                  (Math/cos ,,,)
+                                  (* ,,, (/ x 2)))
+                         :y (-> (* 1.1 id)
+                                (+ ,,, timer)
+                                (Math/sin ,,,)
+                                (* ,,, (/ y 2))))) 
+                ) things)
+         (reduce (fn [g b]
+                   (assoc g (:id b) b)) game ,,,) )))
+
+(defn move-bots [game]
+  (move-things game :bot 0.00003))
+
+(defn move-food [game]
+  (move-things game :food 0.00001))
 
 (defn replenish-bots [game])
 
