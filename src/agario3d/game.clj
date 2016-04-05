@@ -66,41 +66,40 @@
      :y (random-coord y)
      :z (random-coord z)}))
 
+(s/defn create-agent :- Agent 
+  ([radius type colour] (create-agent radius type colour "" (swap! next-id inc)))
+  ([radius type colour name id]
+   (merge  {:c colour
+            :id id
+            :n name
+            :t type
+            :r radius
+            :m (radius->mass radius)} (random-pos))))
+
 (s/defn create-food  :- Agent []
   (let [radius (get-in config [:food :radius])]
-    (merge  {:c "0xffffff"
-             :id (swap! next-id inc)
-             :t :food
-             :r radius
-             :m (radius->mass radius)} (random-pos))))
+    (create-agent radius :food "0xffffff")))
 
 (s/defn create-virus  :- Agent []
-  (let [radius (get-in config [:viruses :radius])]
-    (merge  {:c (get-in config [:viruses :colour])             
-             :id (swap! next-id inc)
-             :t :virus
-             :r radius
-             :m (radius->mass radius)} (random-pos))))
+  (let [radius (get-in config [:viruses :radius])
+        colour (get-in config [:viruses :colour])]
+    (create-agent radius :virus colour)))
 
 (s/defn create-bot  :- Agent []
-  (let [radius (:startRadius config)]
-    (merge  {:c (get-in config [:bots :colour])
-             :id (swap! next-id inc)
-             :t :bot
-             :r radius
-             :m (radius->mass radius)} (random-pos))))
+  (let [radius (:startRadius config)
+        colour (get-in config [:bots :colour])]
+    (create-agent radius :bot colour)))
 
 (s/defn create-player  :- Agent [player]
   (let [radius (:startRadius config)]
-    (merge  {:c (:colour player)
-             :n (:name player)
-             :id (:id player)
-             :t :player
-             :r radius
-             :m (radius->mass radius)} (random-pos))))
+    (create-agent radius :player (:colour player) (:name player) (:id player))))
 
 (s/defn create-agents :- [Agent] [n agentFn]
   (map (fn [n] (agentFn)) (range n)))
+
+(def factories {:food create-food
+                :virus create-virus
+                :bot create-bot})
 
 (s/defn things-of-type :- [Agent]
   [game :- s/Any t :- s/Keyword]
@@ -184,9 +183,21 @@
 (defn move-food [game]
   (move-things game :food 0.00001))
 
-(defn replenish-bots [game])
+(defn replenish-things [game type]
+  (let [things (things-of-type game type)
+        min (get-in config [type :num])
+        shortfall (- min (count things))]
+    (if (= 0 shortfall)
+      things
+      (->> (map (fn [i] ((type factories))) (range shortfall))
+           (reduce (fn [g t]
+                     (assoc g (:id t) t)) game ,,,)))))
 
-(defn replenish-food [game])
+(defn replenish-bots [game]
+  (replenish-things game :bot))
+
+(defn replenish-food [game]
+  (replenish-things game :food))
 
 (defn update-game [game delta]
   (let [snap (:snapshot @game)]
